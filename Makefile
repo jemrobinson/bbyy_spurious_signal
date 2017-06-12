@@ -3,6 +3,7 @@ HEADER_DIR   := include
 BIN_DIR      := bin
 SOURCE_DIR   := src
 OBJECT_DIR   := obj
+OUTPUT_DIR   := output
 DEBUG_DIR    := debug
 MKDIR        := mkdir -p
 
@@ -32,7 +33,7 @@ LIBS := $(shell root-config --libs) -lRooFit
 LIBS += -L$(BOOST_LIB_DIR) -lboost_regex
 
 $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cxx
-	${MKDIR} ${OBJECT_DIR} >2 /dev/null
+	${MKDIR} ${OBJECT_DIR}
 	$(CXX) $(OPTIMIZE) -c -o $@ $< $(CXXFLAGS)
 
 # $(DEBUG_DIR)/%.o: $(SOURCE_DIR)/%.cxx
@@ -43,7 +44,7 @@ $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cxx
 all: bin/fitFourBodyMass
 
 $(BIN_DIR)/fitFourBodyMass: $(OBJECTS)
-	${MKDIR} ${BIN_DIR} >2 /dev/null
+	${MKDIR} ${BIN_DIR} ${OUTPUT_DIR}
 	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 #debug: $(DEBUGOBJECTS)
