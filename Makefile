@@ -1,8 +1,10 @@
 HEADER_DIR   := include
 #EXTERNAL_DIR := external
+BIN_DIR      := bin
 SOURCE_DIR   := src
 OBJECT_DIR   := obj
 DEBUG_DIR    := debug
+MKDIR        := mkdir -p
 
 SOURCES := $(shell find $(SOURCE_DIR) -name "[^.]*.cxx")
 OBJECTS := $(patsubst $(SOURCE_DIR)/%.cxx, $(OBJECT_DIR)/%.o, $(SOURCES))
@@ -30,18 +32,22 @@ LIBS := $(shell root-config --libs) -lRooFit
 LIBS += -L$(BOOST_LIB_DIR) -lboost_regex
 
 $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cxx
+	${MKDIR} ${OBJECT_DIR} >2 /dev/null
 	$(CXX) $(OPTIMIZE) -c -o $@ $< $(CXXFLAGS)
 
-#$(DEBUG_DIR)/%.o: $(SOURCE_DIR)/%.cxx
-#	$(CXX) $(DEBUG) -c -o $@ $< $(CXXFLAGS) $(CXXFLAGSDEBUG)
+# $(DEBUG_DIR)/%.o: $(SOURCE_DIR)/%.cxx
+# 	$(CXX) $(DEBUG) -c -o $@ $< $(CXXFLAGS) $(CXXFLAGSDEBUG)
 
-bin/fitFourBodyMass: $(OBJECTS)
-	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
-
+.PHONY: all clean
+	
 all: bin/fitFourBodyMass
+
+$(BIN_DIR)/fitFourBodyMass: $(OBJECTS)
+	${MKDIR} ${BIN_DIR} >2 /dev/null
+	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 #debug: $(DEBUGOBJECTS)
 #	$(CXX) $(DEBUG) -o bin/debug $^ $(LIBS) $(LIBSDEBUG) $(CXXFLAGS) $(CXXFLAGSDEBUG)
-	
+
 clean:
-	rm -rf $(OBJECT_DIR)/*.o $(DEBUG_DIR)/*.o bin/fitFourBodyMass bin/debug out.prof
+	rm -rf $(OBJECT_DIR)/*.o $(DEBUG_DIR)/*.o ${BIN_DIR}/* out.prof
