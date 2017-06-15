@@ -1,19 +1,20 @@
-HEADER_DIR   := include
 BIN_DIR      := bin
-SOURCE_DIR   := src
+DEBUG_DIR    := debug
+HEADER_DIR   := include
+INPUT_DIR    := input
 OBJECT_DIR   := obj
 OUTPUT_DIR   := output
-DEBUG_DIR    := debug
-MKDIR        := mkdir -p
+SOURCE_DIR   := src
 
 SOURCES := $(shell find $(SOURCE_DIR) -name "[^.]*.cxx")
 OBJECTS := $(patsubst $(SOURCE_DIR)/%.cxx, $(OBJECT_DIR)/%.o, $(SOURCES))
 DEBUGOBJECTS := $(patsubst $(SOURCE_DIR)/%.cxx, $(DEBUG_DIR)/%.o, $(SOURCES))
 
-CXX := g++ -m64 -Wall -Wextra 
+CXX   := g++ -m64 -Wall -Wextra 
+MKDIR := mkdir -p
 
-OPTIMIZE := -g -O2 -DMSG_LEVEL=3
-DEBUG := -g -DMSG_LEVEL=4
+OPTIMIZE := -O2 -DMSG_LEVEL=3
+DEBUG    := -g -DMSG_LEVEL=4
 
 CXXFLAGS := -I$(HEADER_DIR) $(shell root-config --cflags)
 CXXFLAGSDEBUG := -I/afs/cern.ch/sw/lcg/external/tcmalloc/1.7/x86_64-slc5-gcc43-opt/include/
@@ -26,7 +27,7 @@ LIBSDEBUG := -L/afs/cern.ch/sw/lcg/external/tcmalloc/1.7/x86_64-slc5-gcc43-opt/l
 all: $(BIN_DIR)/fitFourBodyMass
 
 $(BIN_DIR)/fitFourBodyMass: $(OBJECTS)
-	${MKDIR} ${BIN_DIR} ${OUTPUT_DIR}
+	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OUTPUT_DIR}
 	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 debug: $(DEBUGOBJECTS)

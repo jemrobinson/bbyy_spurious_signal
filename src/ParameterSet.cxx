@@ -1,6 +1,5 @@
 #include "ParameterSet.h"
 #include "Logger.h"
-#include <iostream>
 
 namespace SpuriousSignal {
   /**
@@ -25,5 +24,12 @@ namespace SpuriousSignal {
       MSG_VERBOSE(m_name << ": restoring variable: " << m_variables.at(idx)->getTitle() << " to " << m_values.at(idx));
       m_variables.at(idx)->setVal(m_values.at(idx));
     }
+  }
+  
+  std::ostream& operator<<(std::ostream& os, const ParameterSet& m) {
+    for (auto variable : m.m_variables) {
+      os << variable->getTitle() << " [" << variable->getVal() << " +/- " << variable->getError() << "], ";
+    }
+    return os;
   }
 }

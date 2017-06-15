@@ -1,5 +1,6 @@
 #pragma once
 #include "RooRealVar.h"
+#include <iostream>
 #include <string>
 
 namespace SpuriousSignal {
@@ -12,6 +13,8 @@ namespace SpuriousSignal {
     
     void record_values();
     void restore_values();
+    
+    friend std::ostream& operator<<(std::ostream& os, const ParameterSet& m);
     
   private:
     const std::string m_name;
