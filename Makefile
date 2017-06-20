@@ -13,7 +13,8 @@ DEBUGOBJECTS := $(patsubst $(SOURCE_DIR)/%.cxx, $(DEBUG_DIR)/%.o, $(SOURCES))
 CXX   := g++ -m64 -Wall -Wextra 
 MKDIR := mkdir -p
 
-OPTIMIZE := -O2 -DMSG_LEVEL=3
+# OPTIMIZE := -O2 -DMSG_LEVEL=3
+OPTIMIZE := -g -DMSG_LEVEL=4
 DEBUG    := -g -DMSG_LEVEL=4
 
 CXXFLAGS := -I$(HEADER_DIR) $(shell root-config --cflags)
