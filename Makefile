@@ -13,14 +13,13 @@ DEBUGOBJECTS := $(patsubst $(SOURCE_DIR)/%.cxx, $(DEBUG_DIR)/%.o, $(SOURCES))
 CXX   := g++ -m64 -Wall -Wextra 
 MKDIR := mkdir -p
 
-# OPTIMIZE := -O2 -DMSG_LEVEL=3
-OPTIMIZE := -g -DMSG_LEVEL=4
+OPTIMIZE := -O2 -DMSG_LEVEL=3
 DEBUG    := -g -DMSG_LEVEL=4
 
 CXXFLAGS := -I$(HEADER_DIR) $(shell root-config --cflags)
 CXXFLAGSDEBUG := -I/afs/cern.ch/sw/lcg/external/tcmalloc/1.7/x86_64-slc5-gcc43-opt/include/
 
-LIBS := $(shell root-config --libs) -lRooFit 
+LIBS := $(shell root-config --libs) -lRooFit
 LIBSDEBUG := -L/afs/cern.ch/sw/lcg/external/tcmalloc/1.7/x86_64-slc5-gcc43-opt/lib/ -ltcmalloc
 
 .PHONY: all clean
@@ -28,7 +27,7 @@ LIBSDEBUG := -L/afs/cern.ch/sw/lcg/external/tcmalloc/1.7/x86_64-slc5-gcc43-opt/l
 all: $(BIN_DIR)/fitFourBodyMass
 
 $(BIN_DIR)/fitFourBodyMass: $(OBJECTS)
-	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OUTPUT_DIR}
+	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OUTPUT_DIR}/plots/mX
 	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 debug: $(DEBUGOBJECTS)

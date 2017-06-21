@@ -11,7 +11,7 @@ namespace SpuriousSignal {
     /**
      * FitMassPoint constructor
      */
-    FitMassPoint(RooDataSet& data, std::vector<RooAbsPdf*> fit_functions, const std::string& mass_category, const bool& verbose = false);
+    FitMassPoint(RooDataSet& data, std::vector<RooAbsPdf*> fit_functions, const std::string& mass_category, const std::string& tag_category, const bool& verbose = false);
 
     void fit();
     void plot(RooPlot* frame, const int& resonance_mass);
@@ -19,6 +19,7 @@ namespace SpuriousSignal {
 
   private:
     std::string m_mass_category;
+    std::string m_tag_category;
     RooDataSet m_data;
     std::vector<RooAbsPdf*> m_fit_functions;
     std::map<std::string, TGraph*> m_fit_graphs;
