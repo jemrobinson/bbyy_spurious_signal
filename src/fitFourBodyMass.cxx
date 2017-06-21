@@ -54,58 +54,10 @@ std::map<std::string, std::vector<std::string> > process_args(int argc, char** a
     }
   }
   // Add defaults
-  if (output_map.find("mass") == output_map.end()) {
-    output_map["mass"] = std::vector<std::string>({"low", "high"});
-  }
-  if (output_map.find("tag") == output_map.end()) {
-    output_map["tag"] = std::vector<std::string>({"0", "1", "2"});
-  }
+  if (output_map.find("mass") == output_map.end()) { output_map["mass"] = std::vector<std::string>({"low", "high"}); }
+  if (output_map.find("tag") == output_map.end()) { output_map["tag"] = std::vector<std::string>({"0", "1", "2"}); }
   return output_map;
 }
-
-  // for (auto itParam = parameters.begin(); itParam < parameters.end(); ++itParam) {
-  //   if (*itParam == "--mass") {
-  //     std::cout << "mass" << *(itParam+1) <<  std::endl;
-  //   }
-  // }
-  // if( params.size() < 2) {
-  //   std::cout << params.at(0) << ": not enough arguments" << std::endl;
-  //   std::cout << " -a analysis type\n -in dataset list\n -out outputfile\n -nEvents nEvents" << std::endl;
-  //   exit(1);
-  // }
-
-  // for( std::vector<std::string>::const_iterator itParam = params.begin(); itParam != params.end(); ++itParam ) {
-  //   if( itParam->at(0) != '-' ) { continue; }
-
-  //   std::string delimiter( *itParam );
-  //   std::string argument( *(itParam+1) );
-  //   delimiter.erase(0, 1);
-
-  //   // If name is "a" then setup new analysis
-  //   if( !delimiter.compare(0, 1, "a") ) {
-  //     std::vector< std::pair<std::string, std::string> > optionSet;
-  //     optionSets.push_back( optionSet );
-  //   }
-
-  //   // If "in", "nEvents", "type" or "isMC" we only want one
-  //   if( !delimiter.compare(0, 2, "in") ) {
-  //     if( inputFile != "" ) { std::cout << "Overriding existing input file " << inputFile << " with " << argument << "!" << std::endl; }
-  //     inputFile = argument;
-  //   } else if( !delimiter.compare(0, 7, "nEvents") ) {
-  //     nEvents = boost::lexical_cast<int>(argument);
-  //   } else if( !delimiter.compare(0, 4, "type") ) {
-  //     if( type != "" ) { std::cout << "Overriding existing type " << type << " with " << argument << "!" << std::endl; }
-  //     type = argument;
-  //   } else if( !delimiter.compare(0, 4, "isMC") ) {
-  //     isMC = true;
-  //   // Otherwise we add to the per analysis list
-  //   } else {
-  //     if( !delimiter.compare(0, 3, "out") ) { FileHandler output(argument,FileHandler::RECREATE); }
-  //     std::pair<std::string, std::string> optionPair( delimiter, argument );
-  //     optionSets.back().push_back( optionPair );
-  //   }
-  // }
-
 
 
 int main(int argc, char** argv) {
@@ -148,10 +100,9 @@ int main(int argc, char** argv) {
     // Define mass ranges
     std::pair<int, int> mass_range = (mass_category == "low" ? std::make_pair<int, int>(245, 485) : std::make_pair<int, int>(335, 1140));
     std::pair<int, int> peak_range = (mass_category == "low" ? std::make_pair<int, int>(260, 280) : std::make_pair<int, int>(0, 1000));
-    // double nEventsData(mass_category == "low" ? :);
 
     // Define data parameters
-    RooRealVar mass("mass", "m_{yyjj}", mass_range.first, mass_range.second);
+    RooRealVar mass("mass", "m_{yyjj}", mass_range.first, mass_range.second, "GeV");
     RooRealVar weight("weight", "event weight", 1e-10, 1e10);
 
     // Iterate over tag categories

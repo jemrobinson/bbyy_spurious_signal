@@ -2,10 +2,12 @@
 #include "Logger.h"
 #include "RooChi2Var.h"
 #include "RooFitResult.h"
+#include "AtlasStyle.h"
 #include "TCanvas.h"
 #include "TFile.h"
 #include "TGraph.h"
 #include "TLegend.h"
+#include "TAxis.h"
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -56,7 +58,8 @@ namespace SpuriousSignal {
   }
 
   void FitMassPoint::plot(RooPlot* frame, const int& resonance_mass) {
-    TCanvas canvas("canvas", "canvas", 800, 600);
+    EnsureAtlasStyle();
+    TCanvas canvas("canvas", "canvas", 50, 50, 600, 600);
     m_resonance_mass = resonance_mass;
     m_fit_graphs.clear();
     m_chi2.clear(); m_ndof.clear(); 
@@ -64,7 +67,7 @@ namespace SpuriousSignal {
     m_data.plotOn(frame);
     m_fit_graphs["data"] = (TGraph*)frame->getObject(frame->numItems() - 1);
     // Add legend
-    TLegend legend(0.4, 0.6, 0.9, 0.9);
+    TLegend legend(0.4, 0.6, 0.93, 0.93);
     // Plot backgrounds and write to file
     for (unsigned int idx = 0; idx < m_fit_functions.size(); ++idx) {
       if (bkg_only()) {
@@ -80,33 +83,17 @@ namespace SpuriousSignal {
         m_fit_graphs["mX_" + std::to_string(resonance_mass) + "_splusb_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx))] = (TGraph*)frame->getObject(frame->numItems() - 1);
       }
       // Chi^2 of fit to data
-      // std::cout << "There are " << frame->numItems() << "items" << std::endl;
-      // for (unsigned int i = 0; i < frame->numItems(); ++i) {
-      //   std::cout << "... " << i << ": " << ((TNamed*)frame->getObject(i))->GetName() << std::endl;
-      // }
-      // RooMsgService::instance().setGlobalKillBelow(RooFit::INFO);
-      // std::cout << "Naive chi2: " << frame->chiSquare() << std::endl;
-      // std::cout << "chi2 (" << m_fit_functions.at(idx)->getTitle() << "_Norm[mass]) and (h_data): " << frame->chiSquare((std::string(m_fit_functions.at(idx)->getTitle()) + "_Norm[mass]").c_str(), "h_data") << std::endl;
-      // RooCurve* fit_curve = (RooCurve*)frame->findObject((std::string(m_fit_functions.at(idx)->getTitle()) + "_Norm[mass]").c_str(), RooCurve::Class());
-      // RooHist* data_hist = (RooHist*)frame->findObject("h_data", RooHist::Class());
-      // Double_t x,y;
-      // for (int i = 0 ; i < data_hist->GetN(); ++i) {
-      //   data_hist->GetPoint(i,x,y);
-      //   double eyl = data_hist->GetEYlow()[i] ;
-      //   double eyh = data_hist->GetEYhigh()[i] ;
-      //   double exl = data_hist->GetEXlow()[i] ;
-      //   double exh = data_hist->GetEXhigh()[i] ;
-      //   Double_t avg = fit_curve->average(x-exl,x+exh) ;
-      //   std::cout << i << " (" << x << "): y_data: " << y << " + " << eyh << " - " << eyl << ", avg_fit: " << avg << " -> " << ((y>avg) ? ((y-avg)/eyl) : ((y-avg)/eyh)) << std::endl;
-      // }
-      // RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
       m_chi2.push_back(frame->chiSquare() * m_fit_graphs["data"]->GetN());
       m_ndof.push_back(m_fit_graphs["data"]->GetN() - m_fit_functions.at(idx)->getParameters(m_data)->getSize());
       MSG_INFO(std::setw(15) << m_fit_functions.at(idx)->getTitle() << " " << (bkg_only() ? "(bkg-only)" : "(S+B)" ) << ": chi2 / ndof =  " << m_chi2.back() << " / " << m_ndof.back());
       std::string s_chi2 = std::to_string(m_chi2.back()); s_chi2 = s_chi2.substr(0, s_chi2.find(".") + 3);
       legend.AddEntry((TGraph*)frame->getObject(frame->numItems() - 1), (m_fn_names[bkg_name(m_fit_functions.at(idx))] + ": #chi^{2} / ndof = " + s_chi2 + " / " + std::to_string(m_ndof.back())).c_str() , "L");
     }
+    legend.AddEntry((TObject*)(0), (m_tag_category + "-tag, " + m_mass_category + " mass, ").c_str(), "");
     frame->Draw();
+    frame->GetXaxis()->SetTitleOffset(1.8);
+    frame->GetYaxis()->SetTitleOffset(1.8);
+    legend.SetBorderSize(0);
     legend.Draw();
     if (bkg_only()) {
       canvas.Print(("output/plots/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_bkgOnly.pdf").c_str());
