@@ -3,38 +3,16 @@
 #include <string>
 #include <utility>
 #include <vector>
-// #include <algorithm>
-// // ROOT
-// #include "TCanvas.h"
-// #include "TError.h"
+// ROOT
 #include "TFile.h"
-// #include "TLegend.h"
-// #include "TMath.h"
 #include "TStyle.h"
-// // RooFit
 #include "RooAddPdf.h"
 #include "RooConstVar.h"
-// #include "RooArgList.h"
-// // #include "RooArgusBG.h"
 #include "RooCBShape.h"
-// // #include "RooCFunction3Binding.h"
-// #include "RooDataSet.h"
-// // #include "RooExponential.h"
-// #include "RooFFTConvPdf.h"
 #include "RooFormulaVar.h"
-// #include "RooGamma.h"
 #include "RooGaussian.h"
 #include "RooGenericPdf.h"
-// #include "RooLandau.h"
-// #include "RooLognormal.h"
-// #include "RooMsgService.h"
-// #include "RooNLLVar.h"
 #include "RooNovosibirsk.h"
-// #include "RooPlot.h"
-// #include "RooPlot.h"
-// #include "RooPoisson.h"
-// #include "RooRealVar.h"
-// #include "RooConstVar.h"
 // Local
 #include "ParameterSet.h"
 #include "Logger.h"
@@ -112,10 +90,18 @@ int main(int argc, char** argv) {
       RooDataSet data("data", "data", RooArgSet(mass, weight), RooFit::Import(*ptr_raw_data), RooFit::WeightVar(weight));
       MSG_INFO("Loaded " << data.numEntries() << " events for " << tag_category << "-tag category, corresponding to " << data.sumEntries() << " data events");
 
-      // Construct vectors of mass points
-      int mass_point(mass_range.first - MASS_STEP);
-      std::vector<double> mass_points((mass_range.second - mass_range.first) / MASS_STEP + 1);
-      std::generate(mass_points.begin(), mass_points.end(), [&mass_point, &MASS_STEP]{ return mass_point += MASS_STEP; });
+      // Construct vectors of mass points: either full range or specified set
+      bool appendToFile(false);
+      std::vector<double> mass_points;
+      if (args.find("mX") != args.end()) {
+        for (auto mass_point : args["mX"]) { mass_points.push_back(std::stoi(mass_point)); }
+        appendToFile = true;
+      } else {
+        int mass_point(mass_range.first - MASS_STEP);
+        mass_points.resize((mass_range.second - mass_range.first) / MASS_STEP + 1);
+        std::generate(mass_points.begin(), mass_points.end(), [&mass_point, &MASS_STEP]{ return mass_point += MASS_STEP; });
+      }
+      std::string fileSuffix(appendToFile ? "_mX" + args["mX"][0] : "");
 
       // Signal: CB+Gaus
       RooRealVar mass_resonance("mass_resonance", "mass of resonance", 300, 0, 2000);
@@ -132,16 +118,18 @@ int main(int argc, char** argv) {
 
       // Novosibirsk
       RooRealVar novosibirsk_peak("novosibirsk_peak", "peak of Novosibirsk", 270, peak_range.first, peak_range.second);
-      RooRealVar novosibirsk_tail("novosibirsk_tail", "tail of Novosibirsk", -1, -20, 20);
+      RooRealVar novosibirsk_tail("novosibirsk_tail", "tail of Novosibirsk", -1, -2, 10);
       RooRealVar novosibirsk_width("novosibirsk_width", "width of Novosibirsk", 30, 0, 500);
       RooNovosibirsk novosibirsk("novosibirsk", "novosibirsk", mass, novosibirsk_peak, novosibirsk_width, novosibirsk_tail);
+      // 0 if  -tail < width / ( peak - x )
+      // (peak - x) > width / (-tail)
 
       // Modified Gamma
       RooRealVar gamma_alpha0("gamma_alpha0", "alpha0 of Gamma", (mass_category == "low" ? 1.5 : 0.08), 0, 1000);
-      RooRealVar gamma_alpha1("gamma_alpha1", "alpha1 of Gamma", 0.003, -0.01, 0.01);
+      RooRealVar gamma_alpha1("gamma_alpha1", "alpha1 of Gamma", 0.003, -0.001, 0.01);
       RooFormulaVar gamma_alpha("gamma_alpha", "gamma_alpha0 + gamma_alpha1 * mass", RooArgList(mass, gamma_alpha0, gamma_alpha1));
       RooRealVar gamma_theta0("gamma_theta0", "theta0 of Gamma", (mass_category == "low" ? 0.07 : 190), 0, 1000);
-      RooRealVar gamma_theta1("gamma_theta1", "theta1 of Gamma", 0.1, -1, 1);
+      RooRealVar gamma_theta1("gamma_theta1", "theta1 of Gamma", 0.1, -0.1, 1);
       RooFormulaVar gamma_theta("gamma_theta", "gamma_theta0 + gamma_theta1 * mass", RooArgList(mass, gamma_theta0, gamma_theta1));
       RooRealVar gamma_mu("gamma_mu", "minimum of Gamma", mass_range.first, 0, mass_range.second);
       RooGenericPdf modified_gamma("modified_gamma", "modified_gamma","TMath::GammaDist(mass, gamma_alpha, gamma_mu, gamma_theta)", RooArgList(mass, gamma_alpha, gamma_theta, gamma_mu));
@@ -161,28 +149,28 @@ int main(int argc, char** argv) {
 
       // Number of signal and background events
       RooRealVar nSig("nSig", "number of signal events", 0, -(0.5 * data.sumEntries()), (0.5 * data.sumEntries()));
-      RooRealVar nBkg("nBkg", "number of background events", 1, 0, 1.5 * data.sumEntries());
+      RooRealVar nBkg("nBkg", "number of background events", data.sumEntries(), 0, 1.5 * data.sumEntries());
 
       // Construct parameter sets that need to be remembered
       std::vector<ParameterSet> parameter_sets;
-      parameter_sets.push_back(ParameterSet("Novosibirsk", {&novosibirsk_peak, &novosibirsk_width, &novosibirsk_tail, &nSig, &nBkg, &mass_resonance}));
-      parameter_sets.push_back(ParameterSet("Modified Gamma", {&gamma_alpha0, &gamma_alpha1, &gamma_theta0, &gamma_theta1, &gamma_mu, &nSig, &nBkg, &mass_resonance}));
-      parameter_sets.push_back(ParameterSet("Modified Landau", {&landau_mean, &landau_sigma0, &landau_sigma1, &nSig, &nBkg, &mass_resonance}));
+      parameter_sets.push_back(ParameterSet("Novosibirsk", {&novosibirsk_peak, &novosibirsk_width, &novosibirsk_tail, &nSig, &nBkg}));
+      parameter_sets.push_back(ParameterSet("Modified Gamma", {&gamma_alpha0, &gamma_alpha1, &gamma_theta0, &gamma_theta1, &gamma_mu, &nSig, &nBkg}));
+      parameter_sets.push_back(ParameterSet("Modified Landau", {&landau_mean, &landau_sigma0, &landau_sigma1, &nSig, &nBkg}));
 
       // Recreate output ROOT file
-      std::string f_output_ROOT("output/fit_functions_" + mass_category + "Mass_" + tag_category + "tag.root");
-      TFile f_ROOT(f_output_ROOT.c_str(), "RECREATE");
+      std::string f_output_ROOT("output/fit_functions_" + mass_category + "Mass_" + tag_category + "tag" + fileSuffix + ".root");
+      TFile f_ROOT(f_output_ROOT.c_str(), (appendToFile ? "WRITE" : "RECREATE"));
       f_ROOT.Close();
 
       // Recreate output text file
-      std::string f_output_text("output/spurious_signal_" + mass_category + "Mass_" + tag_category + "tag.csv");
+      std::string f_output_text("output/spurious_signal_" + mass_category + "Mass_" + tag_category + "tag" + fileSuffix + ".csv");
       std::ofstream f_text;
-      f_text.open(f_output_text, std::ios::trunc);
+      f_text.open(f_output_text, (appendToFile ? std::ios::app : std::ios::trunc));
       f_text.close();
 
       // Do background-only fits
       MSG_INFO("Performing background-only fits for " << bkg_functions.size() << " fit functions.");
-      FitMassPoint fits_bkg_only(data, bkg_functions, mass_category, tag_category);
+      FitMassPoint fits_bkg_only(data, bkg_functions, mass_category, tag_category, true);
       fits_bkg_only.fit();
       fits_bkg_only.plot(mass.frame(), -1);
       fits_bkg_only.write(f_output_ROOT, f_output_text);
@@ -194,8 +182,9 @@ int main(int argc, char** argv) {
       for (auto bkg_function : bkg_functions) {
         splusb_functions.push_back(new RooAddPdf("signal_plus_" + bkg_function->getTitle(), "signal + " + bkg_function->getTitle(), RooArgList(signal_PDF, *bkg_function), RooArgList(nSig, nBkg)));
       }
-      FitMassPoint fits_splusb(data, splusb_functions, mass_category, tag_category);
+      FitMassPoint fits_splusb(data, splusb_functions, mass_category, tag_category, true);
       for (auto mass_point : mass_points) {
+        MSG_INFO("Fitting mass point \033[1m" << mass_point << "\033[0m GeV.");
         // Set mass and restore bkg parameters to best bkg-only fit
         for (auto& parameter_set : parameter_sets) { parameter_set.restore_values(); }
         mass_resonance.setVal(mass_point); mass_resonance.setConstant(true);

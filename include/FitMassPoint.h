@@ -26,6 +26,7 @@ namespace SpuriousSignal {
     std::vector<double> m_nSig;
     std::vector<double> m_nSigError;
     std::vector<double> m_nSigError_withSumW2;
+    std::vector<double> m_nBkg;
     std::vector<double> m_chi2;
     std::vector<int> m_ndof;
     int m_resonance_mass;

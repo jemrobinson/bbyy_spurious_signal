@@ -27,7 +27,7 @@ LIBSDEBUG := -L/afs/cern.ch/sw/lcg/external/tcmalloc/1.7/x86_64-slc5-gcc43-opt/l
 all: $(BIN_DIR)/fitFourBodyMass
 
 $(BIN_DIR)/fitFourBodyMass: $(OBJECTS)
-	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OUTPUT_DIR}/plots/mX
+	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OUTPUT_DIR}/plots/lowMass_0tag ${OUTPUT_DIR}/plots/lowMass_1tag ${OUTPUT_DIR}/plots/lowMass_2tag ${OUTPUT_DIR}/plots/highMass_0tag ${OUTPUT_DIR}/plots/highMass_1tag ${OUTPUT_DIR}/plots/highMass_2tag
 	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 debug: $(DEBUGOBJECTS)

@@ -10,7 +10,6 @@
 #include "TAxis.h"
 #include <fstream>
 #include <iomanip>
-#include <iostream>
 #include "RooCurve.h"
 #include "RooHist.h"
 
@@ -31,10 +30,12 @@ namespace SpuriousSignal {
 
   void FitMassPoint::fit() {
     RooFitResult* fit_result(0);
-    m_nSig.clear(); m_nSigError.clear(); m_nSigError_withSumW2.clear(); 
+    m_nSig.clear(); m_nSigError.clear(); m_nSigError_withSumW2.clear(); m_nBkg.clear();
     for (auto fit_fn : m_fit_functions) {
       // Get a pointer to nSig if this is part of the fit function
       RooAbsArg* nSig = fit_fn->getParameters(m_data)->find("nSig");
+      if (nSig != 0 ) { dynamic_cast<RooRealVar*>(nSig)->setVal(0); }
+      // Begin fitting with simplex + migrad + improve + hesse (+ minos)
       MSG_INFO("... fitting \033[1m" << m_mass_category << " mass " << m_tag_category << "-tag \033[0m with function \033[1m" << fit_fn->getTitle() << "\033[0m");
       // Simplex fit
       fit_result = fit_fn->fitTo(m_data, RooFit::SumW2Error(false), RooFit::NumCPU(4), RooFit::Minimizer("Minuit2", "simplex"), RooFit::Hesse(false), RooFit::Minos(false), RooFit::PrintLevel(-1), RooFit::Save(true));
@@ -51,6 +52,7 @@ namespace SpuriousSignal {
       if (nSig != 0) {
         m_nSig.push_back(dynamic_cast<RooRealVar*>(nSig)->getVal());
         m_nSigError.push_back(dynamic_cast<RooRealVar*>(nSig)->getError());
+        m_nBkg.push_back(dynamic_cast<RooRealVar*>(fit_fn->getParameters(m_data)->find("nBkg"))->getVal());
       }
       // Print final fit result if requested
       if (m_verbose) { fit_result->Print("v");  }
@@ -75,6 +77,10 @@ namespace SpuriousSignal {
         m_fit_functions.at(idx)->plotOn(frame, RooFit::LineColor(m_colours.at(idx)));
         m_fit_graphs[("bkg_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx)))] = (TGraph*)frame->getObject(frame->numItems() - 1);
       } else {
+        // Restore nSig and nBkg
+        std::cout << "Setting nBkg = " << m_nBkg.at(idx) << ", nSig = " << m_nSig.at(idx) << " for " << m_fit_functions.at(idx) << std::endl;
+        dynamic_cast<RooRealVar*>(m_fit_functions.at(idx)->getParameters(m_data)->find("nSig"))->setVal(m_nSig.at(idx));
+        dynamic_cast<RooRealVar*>(m_fit_functions.at(idx)->getParameters(m_data)->find("nBkg"))->setVal(m_nBkg.at(idx));
         // Background
         m_fit_functions.at(idx)->plotOn(frame, RooFit::Components(bkg_name(m_fit_functions.at(idx)).c_str()), RooFit::LineColor(m_colours.at(idx)), RooFit::LineStyle(kDashed));
         m_fit_graphs["mX_" + std::to_string(resonance_mass) + "_bkg_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx))] = (TGraph*)frame->getObject(frame->numItems() - 1);
@@ -89,18 +95,19 @@ namespace SpuriousSignal {
       std::string s_chi2 = std::to_string(m_chi2.back()); s_chi2 = s_chi2.substr(0, s_chi2.find(".") + 3);
       legend.AddEntry((TGraph*)frame->getObject(frame->numItems() - 1), (m_fn_names[bkg_name(m_fit_functions.at(idx))] + ": #chi^{2} / ndof = " + s_chi2 + " / " + std::to_string(m_ndof.back())).c_str() , "L");
     }
-    legend.AddEntry((TObject*)(0), (m_tag_category + "-tag, " + m_mass_category + " mass, ").c_str(), "");
+    legend.AddEntry((TObject*)(0), (m_tag_category + "-tag, " + m_mass_category + " mass").c_str(), "");
     frame->Draw();
-    frame->GetXaxis()->SetTitleOffset(1.8);
-    frame->GetYaxis()->SetTitleOffset(1.8);
+    frame->GetXaxis()->SetTitleOffset(1.7);
+    frame->GetYaxis()->SetTitleOffset(1.7);
     legend.SetBorderSize(0);
+    legend.SetFillStyle(0);
     legend.Draw();
     if (bkg_only()) {
       canvas.Print(("output/plots/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_bkgOnly.pdf").c_str());
     } else {
-      canvas.Print(("output/plots/mX/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + std::to_string(resonance_mass) + ".pdf").c_str());
+      canvas.Print(("output/plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + std::to_string(resonance_mass) + ".pdf").c_str());
     }
-    MSG_INFO("Created \033[1m" + m_mass_category + " mass " + m_tag_category + "tag\033[0m plot for " << (bkg_only() ? "background-only" : "signal-plus-background with mX = " + std::to_string(resonance_mass)));
+    MSG_INFO("Created \033[1m" + m_mass_category + " mass " + m_tag_category + "-tag\033[0m plot for " << (bkg_only() ? "background-only" : "signal-plus-background with mX = " + std::to_string(resonance_mass)));
   }
 
   bool FitMassPoint::bkg_only() const {
