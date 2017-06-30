@@ -71,8 +71,6 @@ int main(int argc, char** argv)
       // Load the workspace
       RooWorkspace* wk(0);
       f_input.GetObject(("signal_model_" + mass_category + "Mass_" + tag_category + "tag").c_str(), wk);
-      MSG_INFO("wk->Print()");
-      wk->Print("v");
 
       // Get the data
       RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_SM_bkg_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(*wk->var("mass"), weight));
@@ -161,11 +159,6 @@ int main(int argc, char** argv)
 
       // Load signal model
       RooAbsPdf* signal_model = wk->pdf("signal_PDF");
-      MSG_INFO("signal_model->Print()");
-      signal_model->Print("v");
-      RooArgSet* model_params = signal_model->getParameters(*wk->var("mass"));
-      MSG_INFO("model_params->Print()");
-      model_params->Print("v");
 
       // Do S+B fits for different backgrounds
       MSG_INFO("Performing signal + background fits for " << bkg_functions.size() << " fit functions.");
@@ -181,13 +174,12 @@ int main(int argc, char** argv)
         MSG_INFO("Fitting mass point \033[1m" << mass_point << "\033[0m GeV.");
 
         // Set mass and restore bkg parameters to best bkg-only fit
-        for (auto& parameter_set : parameter_sets) {
-          parameter_set.restore_values();
-        }
+        for (auto& parameter_set : parameter_sets) { parameter_set.restore_values(); }
         wk->var("mass_resonance")->setVal(mass_point);
         wk->var("mass_resonance")->setConstant(true);
-        MSG_INFO("splusb model_params->Print()");
-        splusb_functions.back()->getParameters(*wk->var("mass"))->Print("v");
+        // MSG_INFO("splusb model_params->Print()");
+        // splusb_functions.back()->getParameters(*wk->var("mass"))->Print("v");
+
         // Fit, plot and output results
         fits_splusb.fit();
         fits_splusb.plot(wk->var("mass")->frame(), mass_point);

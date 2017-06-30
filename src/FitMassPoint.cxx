@@ -1,17 +1,17 @@
+// Local
 #include "FitMassPoint.h"
 #include "Logger.h"
-#include "RooChi2Var.h"
-#include "RooFitResult.h"
+#include "PlotStyle.h"
+// STL
+#include <fstream>
+#include <iomanip>
+// ROOT and RooFit
+#include "RooAbsPdf.h"
+// #include "TAxis.h"
 #include "TCanvas.h"
 #include "TFile.h"
 #include "TGraph.h"
 #include "TLegend.h"
-#include "TAxis.h"
-#include <fstream>
-#include <iomanip>
-#include "RooCurve.h"
-#include "RooHist.h"
-#include "PlotStyle.h"
 
 namespace SpuriousSignal {
   /**
@@ -23,11 +23,8 @@ namespace SpuriousSignal {
     , m_data(data)
     , m_fit_functions(fit_functions)
     , m_resonance_mass(-1)
-      // , m_colours({kViolet, kGreen + 3, kBlue, kRed, kMagenta, kCyan})
-      // , PlotStyles::labels({{"novosibirsk", "Novosibirsk"}, {"modified_gamma", "Modified Gamma"}, {"modified_landau", "Modified Landau"}})
     , m_verbose(verbose)
   {}
-  // , m_colours({{"novosibirsk", kViolet}, {"modified_gamma", kGreen + 3}, {"modified_landau", kBlue}, {"exppoly", kRed}})
 
   void FitMassPoint::fit()
   {
@@ -45,9 +42,7 @@ namespace SpuriousSignal {
       // Begin fitting with simplex + migrad + improve + hesse (+ minos)
       MSG_INFO("... fitting \033[1m" << m_mass_category << " mass " << m_tag_category << "-tag \033[0m with function \033[1m" << fit_fn->getTitle() << "\033[0m");
       // Simplex fit
-      fit_fn->Print("v");
       fit_result = fit_fn->fitTo(m_data, RooFit::SumW2Error(false), RooFit::NumCPU(4), RooFit::Minimizer("Minuit2", "simplex"), RooFit::Hesse(false), RooFit::Minos(false), RooFit::PrintLevel(-1), RooFit::Save(true));
-
       if (m_verbose && fit_result->status() != 0) {
         MSG_ERROR("... simplex fit did not converge: status = " << fit_result->status());
       }
@@ -60,7 +55,6 @@ namespace SpuriousSignal {
 
       // Migrad + Improve + Hesse
       fit_result = fit_fn->fitTo(m_data, RooFit::SumW2Error(false), RooFit::NumCPU(4), RooFit::Minimizer("Minuit2", "migradimproved"), RooFit::Hesse(true), RooFit::Minos(false), RooFit::PrintLevel(-1), RooFit::Save(true));
-
       if (fit_result->status() != 0) {
         MSG_ERROR("... migrad + improve + hesse fit did not converge: status = " << fit_result->status());
       }
@@ -73,9 +67,7 @@ namespace SpuriousSignal {
       }
 
       // Print final fit result if requested
-      if (m_verbose) {
-        fit_result->Print("v");
-      }
+      if (m_verbose) { fit_result->Print("v"); }
     }
   }
 
@@ -91,7 +83,7 @@ namespace SpuriousSignal {
     m_data.plotOn(frame);
     m_fit_graphs["data"] = (TGraph*)frame->getObject(frame->numItems() - 1);
     // Add legend
-    TLegend legend(0.4, 0.6, 0.93, 0.93);
+    TLegend legend(0.4, 0.7, 0.93, 0.93);
 
     // Plot backgrounds and write to file
     for (unsigned int idx = 0; idx < m_fit_functions.size(); ++idx) {
@@ -120,11 +112,8 @@ namespace SpuriousSignal {
       s_chi2 = s_chi2.substr(0, s_chi2.find(".") + 3);
       legend.AddEntry((TGraph*)frame->getObject(frame->numItems() - 1), (PlotStyle::label(bkg_name(m_fit_functions.at(idx))) + ": #chi^{2} / ndof = " + s_chi2 + " / " + std::to_string(m_ndof.back())).c_str(), "L");
     }
-
-    legend.AddEntry((TObject*)(0), (m_tag_category + "-tag, " + m_mass_category + " mass").c_str(), "");
+    legend.AddEntry(m_fit_graphs["data"], ("MC bkg: " + m_tag_category + "-tag, " + m_mass_category + " mass").c_str(), "P");
     frame->Draw();
-    // frame->GetXaxis()->SetTitleOffset(1.7);
-    // frame->GetYaxis()->SetTitleOffset(1.7);
     legend.SetBorderSize(0);
     legend.SetFillStyle(0);
     legend.Draw();

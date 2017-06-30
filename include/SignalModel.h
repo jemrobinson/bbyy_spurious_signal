@@ -1,10 +1,12 @@
 #pragma once
-#include "RooAddPdf.h"
-#include "RooRealVar.h"
+// STL
 #include <string>
+// ROOT and RooFit
+#include "RooAddPdf.h"
+#include "RooDataSet.h"
+#include "RooRealVar.h"
 
 class RooCategory;
-class RooDataSet;
 class RooWorkspace;
 class TFile;
 
@@ -14,14 +16,31 @@ namespace SpuriousSignal {
     /**
      * SignalModel constructor
      */
-    // SignalModel(RooDataSet& data, RooSimultaneous& sim_PDF, const std::string& mass_category, const std::string& tag_category);
     SignalModel(const std::string& mass_category, const std::string& tag_category);
 
+    /**
+     * Build the simultaneous PDF for this category
+     */
     void build_simultaneous_PDF(RooRealVar& mass);
+
+    /**
+     * Fit to dataset
+     */
     void fit(RooDataSet& data);
+
+    /**
+     * Plot fit results
+     */
     void plot();
+
+    /**
+     * Write workspace to file
+     */
     void write(const std::string& output_file_name);
 
+    /**
+     * Expose mass points publicly, since these are needed externally to construct the combined dataset
+     */
     RooCategory* mass_points();
 
   private:

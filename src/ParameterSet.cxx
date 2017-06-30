@@ -1,5 +1,8 @@
+// Local
 #include "ParameterSet.h"
 #include "Logger.h"
+// ROOT and RooFit
+#include "RooRealVar.h"
 
 namespace SpuriousSignal {
   /**

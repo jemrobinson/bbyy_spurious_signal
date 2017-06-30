@@ -1,9 +1,13 @@
 #pragma once
-#include "RooAbsPdf.h"
-#include "RooDataSet.h"
-#include "RooPlot.h"
-#include "RooRealVar.h"
+// STL
 #include <string>
+#include <vector>
+// ROOT and RooFit
+#include "RooDataSet.h"
+#include "RooRealVar.h"
+
+class RooAbsPdf;
+class RooPlot;
 
 namespace SpuriousSignal {
   class FitMassPoint {
@@ -30,8 +34,6 @@ namespace SpuriousSignal {
     std::vector<double> m_chi2;
     std::vector<int> m_ndof;
     int m_resonance_mass;
-    // std::vector<int> m_colours;
-    // std::map<std::string, std::string> m_fn_names;
     bool m_verbose;
 
     bool bkg_only() const;

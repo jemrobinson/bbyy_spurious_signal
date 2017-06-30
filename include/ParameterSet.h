@@ -1,7 +1,9 @@
 #pragma once
-#include "RooRealVar.h"
+// STL
 #include <iostream>
 #include <string>
+
+class RooRealVar;
 
 namespace SpuriousSignal {
   class ParameterSet {

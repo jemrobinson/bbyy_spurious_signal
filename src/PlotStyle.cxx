@@ -80,7 +80,7 @@ namespace SpuriousSignal {
 
   int PlotStyle::colour(const std::string& fn_name)
   {
-    std::map<std::string, int> _map = {{"novosibirsk", kViolet}, {"modified_gamma", kGreen + 3}, {"modified_landau", kBlue}, {"exppoly", kRed}};
+    std::map<std::string, int> _map = {{"novosibirsk", TColor::GetColor("#e7298a")}, {"modified_gamma", TColor::GetColor("#1b9e77")}, {"modified_landau", TColor::GetColor("#7570b3")}, {"exppoly", TColor::GetColor("#d95f02")}};
     return _map[fn_name];
   }
 
