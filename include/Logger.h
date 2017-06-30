@@ -10,7 +10,7 @@
 #define MSG_LVL_VERBOSE   0x05
 
 #ifndef MSG_LEVEL
-#define MSG_LEVEL   MSG_LVL_DEBUG
+  #define MSG_LEVEL   MSG_LVL_DEBUG
 #endif
 
 #define ERROR_TAG   "  \033[1;31mERROR\033[1;0m"
@@ -22,31 +22,31 @@
 #define LOGFUNCTION(lvl, message)      std::cout << lvl << ": " << message << std::endl;
 
 #if MSG_LEVEL >= MSG_LVL_VERBOSE
-#define MSG_VERBOSE(message)   LOGFUNCTION(VERBOSE_TAG, message)
+  #define MSG_VERBOSE(message)   LOGFUNCTION(VERBOSE_TAG, message)
 #else
-#define MSG_VERBOSE(message)
+  #define MSG_VERBOSE(message)
 #endif
 
 #if MSG_LEVEL >= MSG_LVL_DEBUG
-#define MSG_DEBUG(message)     LOGFUNCTION(DEBUG_TAG, message)
+  #define MSG_DEBUG(message)     LOGFUNCTION(DEBUG_TAG, message)
 #else
-#define MSG_DEBUG(message)
+  #define MSG_DEBUG(message)
 #endif
 
 #if MSG_LEVEL >= MSG_LVL_INFO
-#define MSG_INFO(message)      LOGFUNCTION(INFO_TAG, message)
+  #define MSG_INFO(message)      LOGFUNCTION(INFO_TAG, message)
 #else
-#define MSG_INFO(message)
+  #define MSG_INFO(message)
 #endif
 
 #if MSG_LEVEL >= MSG_LVL_WARNING
-#define MSG_WARNING(message)   LOGFUNCTION(WARNING_TAG, message)
+  #define MSG_WARNING(message)   LOGFUNCTION(WARNING_TAG, message)
 #else
-#define MSG_WARNING(message)
+  #define MSG_WARNING(message)
 #endif
 
 #if MSG_LEVEL >= MSG_LVL_ERROR
-#define MSG_ERROR(message)     LOGFUNCTION(ERROR_TAG, message)
+  #define MSG_ERROR(message)     LOGFUNCTION(ERROR_TAG, message)
 #else
-#define MSG_ERROR(message)
+  #define MSG_ERROR(message)
 #endif

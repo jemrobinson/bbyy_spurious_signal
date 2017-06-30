@@ -30,8 +30,8 @@ namespace SpuriousSignal {
     std::vector<double> m_chi2;
     std::vector<int> m_ndof;
     int m_resonance_mass;
-    std::vector<int> m_colours;
-    std::map<std::string, std::string> m_fn_names;
+    // std::vector<int> m_colours;
+    // std::map<std::string, std::string> m_fn_names;
     bool m_verbose;
 
     bool bkg_only() const;

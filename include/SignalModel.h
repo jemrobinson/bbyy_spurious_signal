@@ -1,5 +1,12 @@
 #pragma once
+#include "RooAddPdf.h"
+#include "RooRealVar.h"
 #include <string>
+
+class RooCategory;
+class RooDataSet;
+class RooWorkspace;
+class TFile;
 
 namespace SpuriousSignal {
   class SignalModel {
@@ -7,25 +14,22 @@ namespace SpuriousSignal {
     /**
      * SignalModel constructor
      */
-    SignalModel(const std::string& input_file, const std::string& workspace_name);
-    // void build(RooRealVar& mass_resonance, RooRealVar& mass);
-    // RooWorkspace workspace();
+    // SignalModel(RooDataSet& data, RooSimultaneous& sim_PDF, const std::string& mass_category, const std::string& tag_category);
+    SignalModel(const std::string& mass_category, const std::string& tag_category);
 
-    double m_a_muGANom_SM_c2;
-    double m_b_muGANom_SM_c2;
-    double m_c_muGANom_SM_c2;
-    double m_a_sigmaGANom_SM_c2;
-    double m_b_sigmaGANom_SM_c2;
-    // Crystal Ball
-    double m_a_muCBNom_SM_c2;
-    double m_b_muCBNom_SM_c2;
-    double m_c_muCBNom_SM_c2;
-    double m_a_sigmaCBNom_SM_c2;
-    double m_b_sigmaCBNom_SM_c2;
-    double m_nCB_SM_c2;
-    double m_a_alphaCB_SM_c2;
-    double m_b_alphaCB_SM_c2;
-    // Combination
-    double m_fracCB_SM_c2;
+    void build_simultaneous_PDF(RooRealVar& mass);
+    void fit(RooDataSet& data);
+    void plot();
+    void write(const std::string& output_file_name);
+
+    RooCategory* mass_points();
+
+  private:
+    std::string m_mass_category;
+    std::string m_tag_category;
+    RooWorkspace* m_wk;
+    RooDataSet* m_data;
+
+    void add_mass_point(const int& resonance_mass);
   };
 }

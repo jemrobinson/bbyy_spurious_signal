@@ -9,13 +9,13 @@ namespace SpuriousSignal {
     /**
      * ParameterSet constructor
      */
-    ParameterSet(const std::string &name, std::vector<RooRealVar*> variables);
-    
+    ParameterSet(const std::string& name, std::vector<RooRealVar*> variables);
+
     void record_values();
     void restore_values();
-    
+
     friend std::ostream& operator<<(std::ostream& os, const ParameterSet& m);
-    
+
   private:
     const std::string m_name;
     std::vector<RooRealVar*> m_variables;
