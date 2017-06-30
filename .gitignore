@@ -1,3 +1,9 @@
+# Output files
+*.csv
+*.pdf
+*.tex
+*.root
+
 # Prerequisites
 *.d
 

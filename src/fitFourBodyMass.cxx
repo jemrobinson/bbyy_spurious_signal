@@ -1,7 +1,7 @@
 // Local
 #include "ParameterSet.h"
 #include "Logger.h"
-#include "FitMassPoint.h"
+#include "PDFModelFitter.h"
 #include "SignalModel.h"
 // STL
 #include <fstream>
@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 
       // Do background-only fits
       MSG_INFO("Performing background-only fits for " << bkg_functions.size() << " fit functions.");
-      FitMassPoint fits_bkg_only(data, bkg_functions, mass_category, tag_category, true);
+      PDFModelFitter fits_bkg_only(data, bkg_functions, mass_category, tag_category, true);
       fits_bkg_only.fit();
       fits_bkg_only.plot(wk->var("mass")->frame(), -1);
       fits_bkg_only.write(f_output_ROOT, f_output_text);
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
         splusb_functions.push_back(new RooAddPdf("signal_plus_" + bkg_function->getTitle(), "signal + " + bkg_function->getTitle(), RooArgList(*signal_model, *bkg_function), RooArgList(nSig, nBkg)));
       }
 
-      FitMassPoint fits_splusb(data, splusb_functions, mass_category, tag_category, true);
+      PDFModelFitter fits_splusb(data, splusb_functions, mass_category, tag_category, true);
       for (auto mass_point : mass_points) {
         MSG_INFO("Fitting mass point \033[1m" << mass_point << "\033[0m GeV.");
 

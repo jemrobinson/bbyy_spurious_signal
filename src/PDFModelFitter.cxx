@@ -1,5 +1,5 @@
 // Local
-#include "FitMassPoint.h"
+#include "PDFModelFitter.h"
 #include "Logger.h"
 #include "PlotStyle.h"
 // STL
@@ -7,6 +7,8 @@
 #include <iomanip>
 // ROOT and RooFit
 #include "RooAbsPdf.h"
+#include "RooFitResult.h"
+#include "RooPlot.h"
 // #include "TAxis.h"
 #include "TCanvas.h"
 #include "TFile.h"
@@ -15,9 +17,9 @@
 
 namespace SpuriousSignal {
   /**
-   * FitMassPoint constructor
+   * PDFModelFitter constructor
    */
-  FitMassPoint::FitMassPoint(RooDataSet& data, std::vector<RooAbsPdf*> fit_functions, const std::string& mass_category, const std::string& tag_category, const bool& verbose)
+  PDFModelFitter::PDFModelFitter(RooDataSet& data, std::vector<RooAbsPdf*> fit_functions, const std::string& mass_category, const std::string& tag_category, const bool& verbose)
     : m_mass_category(mass_category)
     , m_tag_category(tag_category)
     , m_data(data)
@@ -26,7 +28,7 @@ namespace SpuriousSignal {
     , m_verbose(verbose)
   {}
 
-  void FitMassPoint::fit()
+  void PDFModelFitter::fit()
   {
     RooFitResult* fit_result(0);
     m_nSig.clear();
@@ -71,7 +73,7 @@ namespace SpuriousSignal {
     }
   }
 
-  void FitMassPoint::plot(RooPlot* frame, const int& resonance_mass)
+  void PDFModelFitter::plot(RooPlot* frame, const int& resonance_mass)
   {
     PlotStyle::EnsureAtlasStyle();
     TCanvas canvas("canvas", "canvas", 600, 600);
@@ -129,12 +131,12 @@ namespace SpuriousSignal {
     MSG_INFO("Created \033[1m" << m_mass_category << " mass " << m_tag_category << "-tag\033[0m plot for " << (bkg_only() ? "background-only" : "signal-plus-background with mX = " + std::to_string(resonance_mass)));
   }
 
-  bool FitMassPoint::bkg_only() const
+  bool PDFModelFitter::bkg_only() const
   {
     return m_resonance_mass < 0;
   }
 
-  std::string FitMassPoint::bkg_name(RooAbsPdf* fit_function) const
+  std::string PDFModelFitter::bkg_name(RooAbsPdf* fit_function) const
   {
     std::string bkg_name(fit_function->getTitle());
 
@@ -145,7 +147,7 @@ namespace SpuriousSignal {
     return bkg_name;
   }
 
-  void FitMassPoint::write(const std::string& f_output_ROOT, const std::string& f_output_text) const
+  void PDFModelFitter::write(const std::string& f_output_ROOT, const std::string& f_output_text) const
   {
     // Write ROOT output
     TFile f_ROOT(f_output_ROOT.c_str(), "WRITE");

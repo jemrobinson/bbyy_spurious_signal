@@ -10,12 +10,12 @@ class RooAbsPdf;
 class RooPlot;
 
 namespace SpuriousSignal {
-  class FitMassPoint {
+  class PDFModelFitter {
   public:
     /**
-     * FitMassPoint constructor
+     * PDFModelFitter constructor
      */
-    FitMassPoint(RooDataSet& data, std::vector<RooAbsPdf*> fit_functions, const std::string& mass_category, const std::string& tag_category, const bool& verbose = false);
+    PDFModelFitter(RooDataSet& data, std::vector<RooAbsPdf*> fit_functions, const std::string& mass_category, const std::string& tag_category, const bool& verbose = false);
 
     void fit();
     void plot(RooPlot* frame, const int& resonance_mass);

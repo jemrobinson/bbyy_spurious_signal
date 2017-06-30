@@ -7,9 +7,9 @@ PLOT_DIR     := plots
 SOURCE_DIR   := src
 
 SOURCES := $(shell find $(SOURCE_DIR) -name "[^.]*.cxx")
-FOUR_BODY_MASS_COMPONENTS := fitFourBodyMass PlotStyle FitMassPoint ParameterSet SignalModel
-SIGNAL_SHAPE_COMPONENTS := fitSignalShape PlotStyle SignalModel 
-CXX   := g++ -m64 -Wall -Wextra 
+FOUR_BODY_MASS_COMPONENTS := fitFourBodyMass ParameterSet PDFModelFitter PlotStyle SignalModel
+SIGNAL_SHAPE_COMPONENTS := fitSignalShape PlotStyle SignalModel
+CXX   := g++ -m64 -Wall -Wextra
 MKDIR := mkdir -p
 
 OPTIMIZE := -g -O2 -DMSG_LEVEL=3
@@ -26,8 +26,9 @@ clean:
 
 
 $(BIN_DIR)/fitFourBodyMass: $(patsubst %, $(OBJECT_DIR)/%.o, $(FOUR_BODY_MASS_COMPONENTS))
-	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OUTPUT_DIR}
-	${MKDIR} ${PLOT_DIR}/lowMass_0tag ${PLOT_DIR}/lowMass_1tag ${PLOT_DIR}/lowMass_2tag ${PLOT_DIR}/highMass_0tag ${PLOT_DIR}/highMass_1tag ${PLOT_DIR}/highMass_2tag
+	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OUTPUT_DIR} ${PLOT_DIR}
+	${MKDIR} ${PLOT_DIR}/lowMass_0tag ${PLOT_DIR}/lowMass_1tag ${PLOT_DIR}/lowMass_2tag
+	${MKDIR} ${PLOT_DIR}/highMass_0tag ${PLOT_DIR}/highMass_1tag ${PLOT_DIR}/highMass_2tag
 	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 $(BIN_DIR)/fitSignalShape: $(patsubst %, $(OBJECT_DIR)/%.o, $(SIGNAL_SHAPE_COMPONENTS))
