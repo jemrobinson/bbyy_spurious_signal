@@ -33,8 +33,10 @@ namespace SpuriousSignal {
       atlasStyle->SetTitleXOffset(1.6); // 1.4
       atlasStyle->SetTitleYOffset(1.6); // 1.4
       // use large fonts
-      Int_t font = 42; // Helvetica
-      Double_t tsize = 0.05;
+      Int_t font = 42; // Helvetica scalable
+      Double_t tsize = 0.04; //0.05;
+      // Int_t font = 43; // Helvetica scalable
+      // Double_t tsize = 25; //30;
       atlasStyle->SetTextFont(font);
       atlasStyle->SetTextSize(tsize);
       atlasStyle->SetLabelFont(font, "x");
@@ -93,6 +95,7 @@ namespace SpuriousSignal {
   std::vector<int> PlotStyle::resonance_masses(const std::string& mass_category)
   {
     if (mass_category == "low") {
+      // return std::vector<int>({260, 400});
       return std::vector<int>({260, 275, 300, 325, 350, 400});
     } else if (mass_category == "high") {
       return std::vector<int>({400, 450, 500, 750, 1000});

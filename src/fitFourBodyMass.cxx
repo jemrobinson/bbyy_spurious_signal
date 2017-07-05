@@ -71,6 +71,7 @@ int main(int argc, char** argv)
       // Load the workspace
       RooWorkspace* wk(0);
       f_input.GetObject(("signal_model_" + mass_category + "Mass_" + tag_category + "tag").c_str(), wk);
+      if (!wk) { MSG_ERROR("Could not open workspace!"); }
 
       // Get the data
       RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_SM_bkg_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(*wk->var("mass"), weight));
@@ -102,7 +103,7 @@ int main(int argc, char** argv)
       RooRealVar gamma_theta0("gamma_theta0", "theta0 of Gamma", (mass_category == "low" ? 0.07 : 190), 0, 1000);
       RooRealVar gamma_theta1("gamma_theta1", "theta1 of Gamma", 0.1, -0.1, 1);
       RooFormulaVar gamma_theta("gamma_theta", "gamma_theta0 + gamma_theta1 * mass", RooArgList(*wk->var("mass"), gamma_theta0, gamma_theta1));
-      RooRealVar gamma_mu("gamma_mu", "minimum of Gamma", mass_range.first, 0, mass_range.second);
+      RooRealVar gamma_mu("gamma_mu", "minimum of Gamma", mass_range.first, 0, mass_range.second + 100);
       RooGenericPdf modified_gamma("modified_gamma", "modified_gamma", "TMath::GammaDist(mass, gamma_alpha, gamma_mu, gamma_theta)", RooArgList(*wk->var("mass"), gamma_alpha, gamma_theta, gamma_mu));
       // Modified Landau
       RooRealVar landau_mean("landau_mean", "mean of Landau", 270, peak_range.first, peak_range.second);

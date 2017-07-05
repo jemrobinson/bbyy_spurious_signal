@@ -12,6 +12,9 @@
 #include "RooRealVar.h"
 #include "TFile.h"
 
+#include "RooPlot.h"
+#include "TCanvas.h"
+
 int main(int /*argc*/, char** /*argv*/)
 {
   using namespace SpuriousSignal;
@@ -21,8 +24,10 @@ int main(int /*argc*/, char** /*argv*/)
   gErrorIgnoreLevel = kBreak;
 
   // Construct mass and tag categories
+  // std::vector<std::string> mass_categories({"low"}); //mass_categories({"low", "high"});
+  // std::vector<std::string> tag_categories({"0"}); //tag_categories({"0", "1", "2"});
   std::vector<std::string> mass_categories({"low", "high"});
-  std::vector<std::string> tag_categories({"1", "2"});
+  std::vector<std::string> tag_categories({"0", "1", "2"});
 
   // Define data parameters
   RooRealVar weight("weight", "event weight", -1e10, 1e10);
@@ -50,11 +55,17 @@ int main(int /*argc*/, char** /*argv*/)
         RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_Xhh_m" + mX + "_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(mass, weight));
         RooDataSet* _data = new RooDataSet("data", "data", RooArgSet(mass, weight), RooFit::Import(*ptr_raw_data), RooFit::WeightVar(weight));
         MSG_INFO("Loaded " << _data->numEntries() << " mX = " << resonance_mass << " events for " << mass_category << " mass, " << tag_category << "-tag category, corresponding to " << _data->sumEntries() << " data events");
+        // _data->Print("v");
         dataset_map[mX] = _data;
+        // TCanvas c;
+        // RooPlot* f = mass.frame();
+        // _data->plotOn(f);
+        // f->Draw();
+        // c.Print("out.pdf");
       }
 
       // Construct combined dataset in terms of  (mass, mass_point)
-      RooDataSet data("data_combined", "data_combined", RooArgSet(mass, weight), RooFit::Index(*model.mass_points()), RooFit::Import(dataset_map));
+      RooDataSet data("data_combined", "data_combined", RooArgSet(mass, weight), RooFit::Index(*model.mass_points()), RooFit::Import(dataset_map), RooFit::WeightVar(weight));
 
       // Fit PDFs to data
       MSG_INFO("Preparing to fit PDF");

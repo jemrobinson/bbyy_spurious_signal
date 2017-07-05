@@ -9,11 +9,11 @@ SOURCE_DIR   := src
 SOURCES := $(shell find $(SOURCE_DIR) -name "[^.]*.cxx")
 FOUR_BODY_MASS_COMPONENTS := fitFourBodyMass ParameterSet PDFModelFitter PlotStyle SignalModel
 SIGNAL_SHAPE_COMPONENTS := fitSignalShape PlotStyle SignalModel
-CXX   := g++ -m64 -Wall -Wextra
+CXX   := g++ -m64 -Wall -Werror -Wextra
 MKDIR := mkdir -p
 
 OPTIMIZE := -g -O2 -DMSG_LEVEL=3
-CXXFLAGS := -I$(HEADER_DIR) $(shell root-config --cflags)
+CXXFLAGS := -std=c++11 -I$(HEADER_DIR) $(shell root-config --cflags)
 LIBS := $(shell root-config --libs) -lRooFit
 
 .PHONY: all clean

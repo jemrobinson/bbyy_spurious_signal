@@ -1,6 +1,7 @@
 #pragma once
 // STL
 #include <string>
+// #include <utility>
 // ROOT and RooFit
 #include "RooAddPdf.h"
 #include "RooDataSet.h"
@@ -50,5 +51,7 @@ namespace SpuriousSignal {
     RooDataSet* m_data;
 
     void add_mass_point(const int& resonance_mass);
+
+    // std::pair<double, double> two_sigma_window(const std::string& mass_category, const std::string& tag_category);
   };
 }

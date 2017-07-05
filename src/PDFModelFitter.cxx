@@ -86,15 +86,13 @@ namespace SpuriousSignal {
     m_fit_graphs["data"] = (TGraph*)frame->getObject(frame->numItems() - 1);
     // Add legend
     TLegend legend(0.4, 0.7, 0.93, 0.93);
-
     // Plot backgrounds and write to file
     for (unsigned int idx = 0; idx < m_fit_functions.size(); ++idx) {
       if (bkg_only()) {
         // Background
         m_fit_functions.at(idx)->plotOn(frame, RooFit::LineColor(PlotStyle::colour(bkg_name(m_fit_functions.at(idx)))));
         m_fit_graphs[("bkg_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx)))] = (TGraph*)frame->getObject(frame->numItems() - 1);
-      }
-      else {
+      } else {
         // Restore nSig and nBkg
         dynamic_cast<RooRealVar*>(m_fit_functions.at(idx)->getParameters(m_data)->find("nSig"))->setVal(m_nSig.at(idx));
         dynamic_cast<RooRealVar*>(m_fit_functions.at(idx)->getParameters(m_data)->find("nBkg"))->setVal(m_nBkg.at(idx));
@@ -105,7 +103,6 @@ namespace SpuriousSignal {
         m_fit_functions.at(idx)->plotOn(frame, RooFit::LineColor(PlotStyle::colour(bkg_name(m_fit_functions.at(idx)))));
         m_fit_graphs["mX_" + std::to_string(resonance_mass) + "_splusb_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx))] = (TGraph*)frame->getObject(frame->numItems() - 1);
       }
-
       // Chi^2 of fit to data
       m_chi2.push_back(frame->chiSquare() * m_fit_graphs["data"]->GetN());
       m_ndof.push_back(m_fit_graphs["data"]->GetN() - m_fit_functions.at(idx)->getParameters(m_data)->getSize());
@@ -119,15 +116,11 @@ namespace SpuriousSignal {
     legend.SetBorderSize(0);
     legend.SetFillStyle(0);
     legend.Draw();
-
     if (bkg_only()) {
       canvas.Print(("plots/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_bkgOnly.pdf").c_str());
-    }
-    else {
+    } else {
       canvas.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + std::to_string(resonance_mass) + ".pdf").c_str());
     }
-
-    // MSG_INFO("Created \033[1m" + m_mass_category + " mass " + m_tag_category + "-tag\033[0m plot for " << (bkg_only() ? "background-only" : "signal-plus-background with mX = " + std::to_string(resonance_mass)));
     MSG_INFO("Created \033[1m" << m_mass_category << " mass " << m_tag_category << "-tag\033[0m plot for " << (bkg_only() ? "background-only" : "signal-plus-background with mX = " + std::to_string(resonance_mass)));
   }
 
