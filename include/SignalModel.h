@@ -1,12 +1,11 @@
 #pragma once
 // STL
 #include <string>
-// #include <utility>
 // ROOT and RooFit
 #include "RooAddPdf.h"
 #include "RooDataSet.h"
 #include "RooRealVar.h"
-
+#include <map>
 class RooCategory;
 class RooWorkspace;
 class TFile;
@@ -32,7 +31,8 @@ namespace SpuriousSignal {
     /**
      * Plot fit results
      */
-    void plot();
+    // void plot();
+    void plot(std::map<std::string, RooDataSet*> dataset_map);
 
     /**
      * Write workspace to file

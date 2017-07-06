@@ -1,16 +1,22 @@
 #! /usr/bin/env python
 import csv
 import math
+import numpy as np
 import os
+# from recursive_rebin import recursive_rebin
 from collections import defaultdict, OrderedDict
-
 from mATLASplotlib import canvases
 
-colours = OrderedDict([("novosibirsk", "purple"), ("modified_gamma", "green"), ("modified_landau", "blue")])
+colours = {"novosibirsk": "#e7298a", "modified_gamma": "#1b9e77", "modified_landau": "#7570b3", "exppoly": "#d95f02"}
 base_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 resonance_range = {"low": (260, 400), "high": (400, 1000)}
 
 for mass_category in ["high", "low"]:
+    if mass_category == "low":
+        functions = ["novosibirsk", "modified_gamma", "modified_landau"]
+    else:
+        functions = ["novosibirsk", "modified_gamma", "modified_landau", "exppoly"]
+
     for tag_category in ["0", "1", "2"]:
         # Check that input file exists
         input_path = os.path.join(base_path, "output", "spurious_signal_{}Mass_{}tag.csv".format(mass_category, tag_category))
@@ -28,15 +34,17 @@ for mass_category in ["high", "low"]:
             for row in csv.reader(f_input, delimiter=" "):
                 try:
                     function, mass, n_sig, Z, Z_uncertainty, chi2, ndof = row
+                    mass, n_sig, Z, Z_uncertainty, chi2, ndof = int(mass), float(n_sig), float(Z), float(Z_uncertainty), float(chi2), int(ndof)
                 except ValueError:
                     print row
                     raise
-                if resonance_range[mass_category][0] <= int(mass) <= resonance_range[mass_category][1]:
-                    n_spurious[function].append((int(mass), float(n_sig)))
-                    Z_spurious[function].append((int(mass), float(Z), float(Z_uncertainty)))
+                if resonance_range[mass_category][0] <= mass <= resonance_range[mass_category][1]:
+                    n_spurious[function].append((mass, n_sig))
+                    if not np.isinf(Z):
+                        Z_spurious[function].append((mass, Z, min(Z_uncertainty, 10)))
                     mass_points.append(int(mass))
                 else:
-                    chi_squared[function] = (float(chi2), int(ndof))
+                    chi_squared[function] = (chi2, ndof)
         # Sort by mass
         [tup.sort(key=lambda x:x[0]) for tup in n_spurious.values()]
         [tup.sort(key=lambda x:x[0]) for tup in Z_spurious.values()]
@@ -52,7 +60,7 @@ for mass_category in ["high", "low"]:
 
         # Plot n_spurious
         canvas = canvases.Simple()
-        for function in colours.keys():
+        for function in functions:
             x, y = zip(*n_spurious[function])
             canvas.plot_dataset((x, y), style="line join centres", label=function.replace("_", " ").title() + ": $N_{{spur}}^{{max}}$ = {:.2f} ".format(max([abs(_y) for _y in y])), colour=colours[function])
         canvas.set_axis_label("x", "$m_{\gamma\gamma jj}$")
@@ -60,33 +68,33 @@ for mass_category in ["high", "low"]:
         canvas.set_axis_range("x", (x_min, x_max))
         canvas.add_ATLAS_label(0.05, 0.96, plot_type="Simulation Internal", anchor_to="upper left")
         canvas.add_luminosity_label(0.05, 0.90, sqrts_TeV=13, luminosity=36.1, units="fb-1", anchor_to="upper left")
-        canvas.add_text(0.05, 0.83, "{}-tag {} mass".format(tag_category, mass_category), anchor_to="upper left")
-        canvas.add_legend(0.97, 0.05, fontsize="medium", anchor_to="lower right")
+        canvas.add_text(0.05, 0.85, "{}-tag {} mass".format(tag_category, mass_category), anchor_to="upper left")
+        canvas.add_legend(0.97, 0.9, fontsize="medium", anchor_to="upper right")
         canvas.internal_header_fraction = 0.3
-        canvas.save_to_file(os.path.join(base_path, "output", "plots", "n_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
+        canvas.save_to_file(os.path.join(base_path, "plots", "n_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
 
         # Plot Z_spurious
         canvas = canvases.Simple()
         y_min, y_max = -0.3, 0.3
-        for function in colours.keys():
+        for function in functions:
             x, y, y_err = zip(*Z_spurious[function])
+            # recursive_rebin(Z_spurious[function])
             canvas.plot_dataset((x, None, y, y_err), style="binned band", colour=colours[function], alpha=0.2)
             canvas.plot_dataset((x, y), style="line join centres", label=function.replace("_", " ").title(), colour=colours[function])
-            y_restricted = [_y for _y in y if -1.5 < float(_y) < 1.5]
+            y_restricted = [_y for _y in y if -1.0 < float(_y) < 1.0]
             y_min, y_max = min(y_min, min(y_restricted)), max(y_max, max(y_restricted))
         canvas.plot_dataset(([x_min, x_max], [0.2, 0.2]), style="line join centres", colour="red", linestyle="dashed")
         canvas.plot_dataset(([x_min, x_max], [-0.2, -0.2]), style="line join centres", colour="red", linestyle="dashed")
         canvas.set_axis_label("x", "$m_{\gamma\gamma jj}$")
         canvas.set_axis_label("y", "$S / \Delta S$")
         canvas.set_axis_range("x", (x_min, x_max))
-        canvas.set_axis_range("y", (y_min, y_max))
+        canvas.set_axis_range("y", (1.1 * y_min, 1.1 * y_max))
         canvas.add_ATLAS_label(0.05, 0.96, plot_type="Simulation Internal", anchor_to="upper left")
         canvas.add_luminosity_label(0.05, 0.90, sqrts_TeV=13, luminosity=36.1, units="fb-1", anchor_to="upper left")
-        canvas.add_text(0.05, 0.83, "{}-tag {} mass".format(tag_category, mass_category), anchor_to="upper left")
+        canvas.add_text(0.05, 0.85, "{}-tag {} mass".format(tag_category, mass_category), anchor_to="upper left")
         canvas.internal_header_fraction = 0.3
-        canvas.add_legend(0.97, 0.05, fontsize="medium", anchor_to="lower right")
-        # canvas.add_legend(0.97, 0.96, fontsize="medium", anchor_to="upper right")
-        canvas.save_to_file(os.path.join(base_path, "output", "plots", "Z_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
+        canvas.add_legend(0.97, 0.9, fontsize="medium", anchor_to="upper right")
+        canvas.save_to_file(os.path.join(base_path, "plots", "Z_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
 
         if not os.path.exists("tex"):
             os.makedirs("tex")
