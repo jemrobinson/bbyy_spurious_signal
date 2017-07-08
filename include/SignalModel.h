@@ -31,8 +31,8 @@ namespace SpuriousSignal {
     /**
      * Plot fit results
      */
-    // void plot();
-    void plot(std::map<std::string, RooDataSet*> dataset_map);
+    void plot();
+    // void plot(std::map<std::string, RooDataSet*> dataset_map);
 
     /**
      * Write workspace to file
@@ -52,6 +52,6 @@ namespace SpuriousSignal {
 
     void add_mass_point(const int& resonance_mass);
 
-    // std::pair<double, double> two_sigma_window(const std::string& mass_category, const std::string& tag_category);
+    void set_initial_values(const int& resonance_mass);
   };
 }

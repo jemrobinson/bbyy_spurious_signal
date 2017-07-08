@@ -9,7 +9,7 @@ SOURCE_DIR   := src
 SOURCES := $(shell find $(SOURCE_DIR) -name "[^.]*.cxx")
 FOUR_BODY_MASS_COMPONENTS := fitFourBodyMass ParameterSet PDFModelFitter PlotStyle SignalModel
 SIGNAL_SHAPE_COMPONENTS := fitSignalShape PlotStyle SignalModel
-CXX   := g++ -m64 -Wall -Werror -Wextra
+CXX   := g++ -m64 -Wall -Wextra #-Werror
 MKDIR := mkdir -p
 
 OPTIMIZE := -g -O2 -DMSG_LEVEL=3

@@ -25,17 +25,7 @@ for mass_category in ["low", "high"]:
 # BSM Higgs
 for csv_file in glob.glob(os.path.join(input_directory, "m_yyjj_Xhh_m*.csv")):
     with open(os.path.join("input", os.path.basename(csv_file)), "wb") as f_output:
-        # weights, masses = [], []
-        # with open(csv_file, "rb") as f_input:
-        #     for row in csv.reader(f_input, delimiter="\t"):
-        #         if float(abs(float(row[1]))) > 0.0:
-        #             weights.append(float(row[1]))
-        #             masses.append(float(row[0]))
-        # sum_weights = sum(weights)
-        # print csv_file, min([abs(x) for x in masses])
-        # print csv_file, min([abs(x) for x in weights])
-        # scale_factor = 1.0 / sum_weights
         with open(csv_file, "rb") as f_input:
             for row in csv.reader(f_input, delimiter="\t"):
-                if abs(float(row[1])) > 0.0:
-                    f_output.write("\t".join((row[0], "{0:.20f}".format(float(row[1])))) + "\n")
+                # if abs(float(row[1])) > 0.0:
+                f_output.write("\t".join((row[0], "{0:.20f}".format(float(row[1])))) + "\n")
