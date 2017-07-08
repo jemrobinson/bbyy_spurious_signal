@@ -54,7 +54,7 @@ namespace SpuriousSignal {
     for (auto resonance_mass : PlotStyle::resonance_masses(m_mass_category)) { mass_points.defineType(std::to_string(resonance_mass).c_str()); }
     m_wk->import(mass_points);
     m_wk->addClassDeclImportDir("include/");
-    m_wk->importClassCode("RooDSCB*");
+    // m_wk->importClassCode("RooDSCB*");
   }
 
   void SignalModel::build_simultaneous_PDF(RooRealVar& mass)
@@ -84,10 +84,11 @@ namespace SpuriousSignal {
     m_wk->factory("single_DSCB_nHi[5.0, 0.1, 10]");
     // m_wk->factory("RooDSCB::single_signal_PDF(mass, single_DSCB_mu, single_DSCB_sigma, single_DSCB_alphaLo, single_DSCB_nLo, single_DSCB_alphaHi, single_DSCB_nHi)");
     m_wk->factory("single_EGE_mu[260, 0, +INF]");
-    m_wk->factory("single_EGE_sigma[4, 0.01, 10]");
-    m_wk->factory("single_EGE_kLo[2, 0.15, 10]");
-    m_wk->factory("single_EGE_kHi[2, 0.15, 10]");
+    m_wk->factory("single_EGE_sigma[4, 0.0, 10]");
+    m_wk->factory("single_EGE_kLo[2, 0.1, +INF]");
+    m_wk->factory("single_EGE_kHi[2, 0.1, +INF]");
     m_wk->factory("RooExpGausExp::single_signal_PDF(mass, single_EGE_mu, single_EGE_sigma, single_EGE_kLo, single_EGE_kHi)");
+    m_wk->importClassCode("RooExpGausExp*");
     // m_wk->factory("Landau::conv(mass, ml[260, 0, +INF], sl[20, 0, 100])");
     // m_wk->factory("Gaussian::gauss(mass, mg[0], sg[1e-10])");
     // m_wk->factory("FCONV::conv(mass, single_CB, gauss)");
@@ -239,7 +240,11 @@ namespace SpuriousSignal {
       frame->GetXaxis()->SetLabelOffset(-100);
       frame->Draw();
       TLatex textBox; textBox.SetNDC(); textBox.SetTextFont(42); textBox.SetTextSize(0.02);
-      // textBox.SetTextColor(kBlue);
+      textBox.SetTextColor(kBlue);
+      textBox.DrawLatex(0.2, 0.90, ("#mu_{EGE} = " + PlotStyle::to_string(m_wk->var("single_EGE_mu")->getVal(), 2)).c_str());
+      textBox.DrawLatex(0.2, 0.86, ("#sigma_{EGE} = " + PlotStyle::to_string(m_wk->var("single_EGE_sigma")->getVal(), 2)).c_str());
+      textBox.DrawLatex(0.2, 0.82, ("kLo_{EGE} = " + PlotStyle::to_string(m_wk->var("single_EGE_kLo")->getVal(), 2)).c_str());
+      textBox.DrawLatex(0.2, 0.78, ("kHi_{EGE} = " + PlotStyle::to_string(m_wk->var("single_EGE_kHi")->getVal(), 2)).c_str());
       // textBox.DrawLatex(0.2, 0.90, ("#mu_{DSCB} = " + PlotStyle::to_string(m_wk->var("single_DSCB_mu")->getVal(), 2)).c_str());
       // textBox.DrawLatex(0.2, 0.86, ("#sigma_{DSCB} = " + PlotStyle::to_string(m_wk->var("single_DSCB_sigma")->getVal(), 2)).c_str());
       // textBox.DrawLatex(0.2, 0.82, ("#alphaLo_{DSCB} = " + PlotStyle::to_string(m_wk->var("single_DSCB_alphaLo")->getVal(), 2)).c_str());

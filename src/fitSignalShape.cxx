@@ -20,14 +20,14 @@ int main(int /*argc*/, char** /*argv*/)
   using namespace SpuriousSignal;
 
   // Disable RooFit and ROOT messages
-  RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
+  // RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
   gErrorIgnoreLevel = kBreak;
 
   // Construct mass and tag categories
-  std::vector<std::string> mass_categories({"low"});
-  std::vector<std::string> tag_categories({"0"});
-  // std::vector<std::string> mass_categories({"low", "high"});
-  // std::vector<std::string> tag_categories({"0", "1", "2"});
+  // std::vector<std::string> mass_categories({"low"});
+  // std::vector<std::string> tag_categories({"0"});
+  std::vector<std::string> mass_categories({"low", "high"});
+  std::vector<std::string> tag_categories({"0", "1", "2"});
 
   // Define data parameters
   RooRealVar weight("weight", "event weight", -1e10, 1e10);
