@@ -2,6 +2,8 @@
 #include "Logger.h"
 #include "PlotStyle.h"
 #include "SignalModel.h"
+#include "RooDSCB.h"
+#include "RooExpGausExp.h"
 // ROOT and RooFit
 #include "RooCategory.h"
 #include "RooPlot.h"
@@ -51,6 +53,8 @@ namespace SpuriousSignal {
     RooCategory mass_points("mass_points", "mass_points");
     for (auto resonance_mass : PlotStyle::resonance_masses(m_mass_category)) { mass_points.defineType(std::to_string(resonance_mass).c_str()); }
     m_wk->import(mass_points);
+    m_wk->addClassDeclImportDir("include/");
+    m_wk->importClassCode("RooDSCB*");
   }
 
   void SignalModel::build_simultaneous_PDF(RooRealVar& mass)
@@ -59,18 +63,35 @@ namespace SpuriousSignal {
     m_wk->factory("Simultaneous::signal_model(mass_points)");
     for (auto resonance_mass : PlotStyle::resonance_masses(m_mass_category) ) { add_mass_point(resonance_mass); }
     // Also build a simple CB+G shape
-    m_wk->factory("simple_CB_mu[260.325, 0, +INF]");
-    m_wk->factory("simple_CB_sigma[6.5, 0, 10]");
-    m_wk->factory("simple_CB_alpha[0.5, 0, 10]");
-    m_wk->factory("simple_CB_n[10, 0, 200]");
-    m_wk->factory("simple_gaus_mu[273.538, 0, +INF]");
-    m_wk->factory("simple_gaus_sigma_k[6.5, 1, 20]");
-    m_wk->factory("simple_CB_frac[0.8, 0.0, 1.0]");
-    m_wk->factory("prod::simple_gaus_sigma(simple_gaus_sigma_k, simple_CB_sigma)");
-    m_wk->factory("CBShape::simple_CB(mass, simple_CB_mu, simple_CB_sigma, simple_CB_alpha, simple_CB_n)");
-    // m_wk->factory("Gaussian::simple_gaus(mass, simple_gaus_mu, simple_gaus_sigma)");
-    m_wk->factory("Gaussian::simple_gaus(mass, simple_CB_mu, simple_gaus_sigma)");
-    m_wk->factory("SUM::simple_signal_PDF(simple_CB_frac * simple_CB, simple_gaus)");
+    m_wk->factory("single_CB_mu[260.325, 0, +INF]");
+    m_wk->factory("single_CB_sigma[6.5, 0, 50]");
+    m_wk->factory("single_CB_alpha[-0.1, -5, 5]");
+    m_wk->factory("single_CB_n[2, 0, 200]");
+    m_wk->factory("single_gaus_mu[0, -10, 10]");
+    m_wk->factory("single_gaus_sigma_k[6, 2, 10]");
+    m_wk->factory("single_CB_frac[0.9, 0.0, 1.0]");
+    m_wk->factory("prod::single_gaus_sigma(single_gaus_sigma_k, single_CB_sigma)");
+    // m_wk->factory("CBShape::single_signal_PDF(mass, single_CB_mu, single_CB_sigma, single_CB_alpha, single_CB_n)");
+    m_wk->factory("CBShape::single_CB(mass, single_CB_mu, single_CB_sigma, single_CB_alpha, single_CB_n)");
+    // m_wk->factory("Gaussian::single_gaus(mass, single_gaus_mu, single_gaus_sigma)");
+    // m_wk->factory("Gaussian::single_gaus(mass, single_CB_mu, single_gaus_sigma)");
+    // m_wk->factory("SUM::single_signal_PDF(single_CB_frac * single_CB, single_gaus)");
+    m_wk->factory("single_DSCB_mu[325.20, 0, +INF]");
+    m_wk->factory("single_DSCB_sigma[1.7, 0.01, 8.0]");
+    m_wk->factory("single_DSCB_alphaLo[0.2, 0.15, 1.0]");
+    m_wk->factory("single_DSCB_nLo[9.0, 0.1, 20]");
+    m_wk->factory("single_DSCB_alphaHi[0.2, 0.15, 1.0]");
+    m_wk->factory("single_DSCB_nHi[5.0, 0.1, 10]");
+    // m_wk->factory("RooDSCB::single_signal_PDF(mass, single_DSCB_mu, single_DSCB_sigma, single_DSCB_alphaLo, single_DSCB_nLo, single_DSCB_alphaHi, single_DSCB_nHi)");
+    m_wk->factory("single_EGE_mu[260, 0, +INF]");
+    m_wk->factory("single_EGE_sigma[4, 0.01, 10]");
+    m_wk->factory("single_EGE_kLo[2, 0.15, 10]");
+    m_wk->factory("single_EGE_kHi[2, 0.15, 10]");
+    m_wk->factory("RooExpGausExp::single_signal_PDF(mass, single_EGE_mu, single_EGE_sigma, single_EGE_kLo, single_EGE_kHi)");
+    // m_wk->factory("Landau::conv(mass, ml[260, 0, +INF], sl[20, 0, 100])");
+    // m_wk->factory("Gaussian::gauss(mass, mg[0], sg[1e-10])");
+    // m_wk->factory("FCONV::conv(mass, single_CB, gauss)");
+    m_wk->Print("v");
   }
 
   void SignalModel::add_mass_point(const int& resonance_mass) {
@@ -177,25 +198,28 @@ namespace SpuriousSignal {
       // Fit with simple CB+G
       RooDataSet* data_slice = dynamic_cast<RooDataSet*>(m_data->reduce(RooFit::Cut(("mass_points==mass_points::" + mX).c_str()), RooFit::SelectVars(m_wk->argSet("mass, weight"))));
       // set_initial_values(resonance_mass);
-      // m_wk->pdf("simple_signal_PDF")->getParameters(*data_slice)->Print("v");
-      // data_slice->Print("v");
-      // m_wk->pdf("simple_signal_PDF")->fitTo(*data_slice, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "migrad"), RooFit::Range(mass_low, mass_high), RooFit::PrintLevel(-1));
-      m_wk->pdf("simple_signal_PDF")->fitTo(*data_slice, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "migradimproved"), RooFit::PrintLevel(-1));
-      MSG_INFO("For resonance with mass \033[1m" << mX << " GeV\033[0m");
-      MSG_INFO("simple_CB_mu: " << m_wk->var("simple_CB_mu")->getVal());
-      MSG_INFO("simple_CB_sigma: " << m_wk->var("simple_CB_sigma")->getVal());
-      MSG_INFO("simple_CB_alpha: " << m_wk->var("simple_CB_alpha")->getVal());
-      MSG_INFO("simple_CB_n: " << m_wk->var("simple_CB_n")->getVal());
-      MSG_INFO("simple_gaus_mu: " << m_wk->var("simple_gaus_mu")->getVal());
-      MSG_INFO("simple_gaus_sigma_k: " << m_wk->var("simple_gaus_sigma_k")->getVal());
-      MSG_INFO("simple_CB_frac: " << m_wk->var("simple_CB_frac")->getVal());
-      best_fit.at(0) = best_fit.at(0) + ", " + std::to_string(m_wk->var("simple_CB_mu")->getVal());
-      best_fit.at(1) = best_fit.at(1) + ", " + std::to_string(m_wk->var("simple_CB_sigma")->getVal());
-      best_fit.at(2) = best_fit.at(2) + ", " + std::to_string(m_wk->var("simple_CB_alpha")->getVal());
-      best_fit.at(3) = best_fit.at(3) + ", " + std::to_string(m_wk->var("simple_CB_n")->getVal());
-      best_fit.at(4) = best_fit.at(4) + ", " + std::to_string(m_wk->var("simple_gaus_mu")->getVal());
-      best_fit.at(5) = best_fit.at(5) + ", " + std::to_string(m_wk->var("simple_gaus_sigma_k")->getVal());
-      best_fit.at(6) = best_fit.at(6) + ", " + std::to_string(m_wk->var("simple_CB_frac")->getVal());
+      // m_wk->pdf("single_signal_PDF")->getParameters(*data_slice)->Print("v");
+      m_wk->pdf("single_signal_PDF")->fitTo(*data_slice, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "migradimproved"), RooFit::PrintLevel(1));
+      m_wk->pdf("single_signal_PDF")->Print("v");
+      MSG_INFO("single_EGE_mu: " << m_wk->var("single_EGE_mu")->getVal());
+      MSG_INFO("single_EGE_sigma: " << m_wk->var("single_EGE_sigma")->getVal());
+      MSG_INFO("single_EGE_kLo: " << m_wk->var("single_EGE_kLo")->getVal());
+      MSG_INFO("single_EGE_kHi: " << m_wk->var("single_EGE_kHi")->getVal());
+      // MSG_INFO("For resonance with mass \033[1m" << mX << " GeV\033[0m");
+      // MSG_INFO("single_CB_mu: " << m_wk->var("single_CB_mu")->getVal());
+      // MSG_INFO("single_CB_sigma: " << m_wk->var("single_CB_sigma")->getVal());
+      // MSG_INFO("single_CB_alpha: " << m_wk->var("single_CB_alpha")->getVal());
+      // MSG_INFO("single_CB_n: " << m_wk->var("single_CB_n")->getVal());
+      // MSG_INFO("single_gaus_mu: " << m_wk->var("single_gaus_mu")->getVal());
+      // MSG_INFO("single_gaus_sigma_k: " << m_wk->var("single_gaus_sigma_k")->getVal());
+      // MSG_INFO("single_CB_frac: " << m_wk->var("single_CB_frac")->getVal());
+      // best_fit.at(0) = best_fit.at(0) + ", " + std::to_string(m_wk->var("single_CB_mu")->getVal());
+      // best_fit.at(1) = best_fit.at(1) + ", " + std::to_string(m_wk->var("single_CB_sigma")->getVal());
+      // best_fit.at(2) = best_fit.at(2) + ", " + std::to_string(m_wk->var("single_CB_alpha")->getVal());
+      // best_fit.at(3) = best_fit.at(3) + ", " + std::to_string(m_wk->var("single_CB_n")->getVal());
+      // best_fit.at(4) = best_fit.at(4) + ", " + std::to_string(m_wk->var("single_gaus_mu")->getVal());
+      // best_fit.at(5) = best_fit.at(5) + ", " + std::to_string(m_wk->var("single_gaus_sigma_k")->getVal());
+      // best_fit.at(6) = best_fit.at(6) + ", " + std::to_string(m_wk->var("single_CB_frac")->getVal());
       // Construct frames
       RooPlot* frame = m_wk->var("mass")->frame(mass_low, mass_high, nBins);
       RooPlot* frame_ratio = m_wk->var("mass")->frame(mass_low, mass_high, nBins);
@@ -203,7 +227,7 @@ namespace SpuriousSignal {
       m_wk->pdf("signal_model")->plotOn(frame, RooFit::Slice(*m_wk->cat("mass_points"), mX.c_str()), RooFit::ProjWData(*m_wk->cat("mass_points"), *m_data), RooFit::LineColor(kRed));
       RooHist* pull_hist_full = frame->pullHist(); pull_hist_full->SetLineColor(kRed); pull_hist_full->SetMarkerColor(kRed);
       data_slice->plotOn(frame, RooFit::DataError(RooAbsData::SumW2), RooFit::Invisible()); // RooFit::MarkerColor(kViolet)
-      m_wk->pdf("simple_signal_PDF")->plotOn(frame, RooFit::LineColor(kBlue));
+      m_wk->pdf("single_signal_PDF")->plotOn(frame, RooFit::LineColor(kBlue));
       RooHist* pull_hist_simple = frame->pullHist(); pull_hist_simple->SetLineColor(kBlue); pull_hist_simple->SetMarkerColor(kBlue);
       // Construct a histogram with the pulls of the data w.r.t the curve
       frame_ratio->addPlotable(pull_hist_full, "P");
@@ -215,24 +239,29 @@ namespace SpuriousSignal {
       frame->GetXaxis()->SetLabelOffset(-100);
       frame->Draw();
       TLatex textBox; textBox.SetNDC(); textBox.SetTextFont(42); textBox.SetTextSize(0.02);
-      textBox.SetTextColor(kBlue);
-      textBox.DrawLatex(0.2, 0.90, ("#mu_{CB} = " + PlotStyle::to_string(m_wk->var("simple_CB_mu")->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.2, 0.86, ("#sigma_{CB} = " + PlotStyle::to_string(m_wk->var("simple_CB_sigma")->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.2, 0.82, ("#alpha_{CB} = " + PlotStyle::to_string(m_wk->var("simple_CB_alpha")->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.2, 0.78, ("n_{CB} = " + PlotStyle::to_string(m_wk->var("simple_CB_n")->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.2, 0.74, ("f_{CB} = " + PlotStyle::to_string(m_wk->var("simple_CB_frac")->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.2, 0.70, ("#mu_{GA} = " + PlotStyle::to_string(m_wk->var("simple_gaus_mu")->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.2, 0.66, ("#sigma_{GA} = " + PlotStyle::to_string(m_wk->function("simple_gaus_sigma")->getVal(), 2)).c_str());
-      textBox.SetTextColor(kRed);
-      textBox.DrawLatex(0.8, 0.90, ("#mu_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_mu_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.8, 0.86, ("#sigma_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_sigma_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.8, 0.82, ("#alpha_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_alpha_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.8, 0.78, ("n_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_n_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.8, 0.74, ("f_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_frac_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.8, 0.70, ("#mu_{GA} = " + PlotStyle::to_string(m_wk->function(("gaus_mu_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-      textBox.DrawLatex(0.8, 0.66, ("#sigma_{GA} = " + PlotStyle::to_string(m_wk->function(("gaus_sigma_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+      // textBox.SetTextColor(kBlue);
+      // textBox.DrawLatex(0.2, 0.90, ("#mu_{DSCB} = " + PlotStyle::to_string(m_wk->var("single_DSCB_mu")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.86, ("#sigma_{DSCB} = " + PlotStyle::to_string(m_wk->var("single_DSCB_sigma")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.82, ("#alphaLo_{DSCB} = " + PlotStyle::to_string(m_wk->var("single_DSCB_alphaLo")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.78, ("nLo_{DSCB} = " + PlotStyle::to_string(m_wk->var("single_DSCB_nLo")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.74, ("#alphaHi_{DSCB} = " + PlotStyle::to_string(m_wk->var("single_DSCB_alphaHi")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.70, ("nHi_{DSCB} = " + PlotStyle::to_string(m_wk->var("single_DSCB_nHi")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.90, ("#mu_{CB} = " + PlotStyle::to_string(m_wk->var("single_CB_mu")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.86, ("#sigma_{CB} = " + PlotStyle::to_string(m_wk->var("single_CB_sigma")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.82, ("#alpha_{CB} = " + PlotStyle::to_string(m_wk->var("single_CB_alpha")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.78, ("n_{CB} = " + PlotStyle::to_string(m_wk->var("single_CB_n")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.74, ("f_{CB} = " + PlotStyle::to_string(m_wk->var("single_CB_frac")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.70, ("#mu_{GA} = " + PlotStyle::to_string(m_wk->var("single_gaus_mu")->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.2, 0.66, ("#sigma_{GA} = " + PlotStyle::to_string(m_wk->function("single_gaus_sigma")->getVal(), 2)).c_str());
+      // textBox.SetTextColor(kRed);
+      // textBox.DrawLatex(0.8, 0.90, ("#mu_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_mu_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.8, 0.86, ("#sigma_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_sigma_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.8, 0.82, ("#alpha_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_alpha_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.8, 0.78, ("n_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_n_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.8, 0.74, ("f_{CB} = " + PlotStyle::to_string(m_wk->function(("CB_frac_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.8, 0.70, ("#mu_{GA} = " + PlotStyle::to_string(m_wk->function(("gaus_mu_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+      // textBox.DrawLatex(0.8, 0.66, ("#sigma_{GA} = " + PlotStyle::to_string(m_wk->function(("gaus_sigma_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
       TPad pad_bottom("pad_bottom", "pad_bottom", 0.0, 0.0, 1.0, 1.0);
-      // textBox.DrawLatex(0.8, 0.62, ("Yield = " + PlotStyle::to_string(m_wk->function(("gaus_sigma_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
       pad_bottom.SetTopMargin(0.65);
       pad_bottom.SetFillStyle(0);
       pad_bottom.Draw();
@@ -269,13 +298,13 @@ namespace SpuriousSignal {
         else { return; }
       }
     }
-    m_wk->var("simple_CB_mu")->setVal(CB_mu); //m_wk->var("simple_CB_mu")->setConstant();
-    m_wk->var("simple_CB_sigma")->setVal(CB_sigma); //m_wk->var("simple_CB_sigma")->setConstant();
-    m_wk->var("simple_CB_alpha")->setVal(CB_alpha); //m_wk->var("simple_CB_alpha")->setConstant();
-    m_wk->var("simple_CB_n")->setVal(CB_n); //m_wk->var("simple_CB_n")->setConstant();
-    m_wk->var("simple_CB_frac")->setVal(CB_frac); //m_wk->var("simple_CB_frac")->setConstant();
-    m_wk->var("simple_gaus_sigma_k")->setVal(gaus_sigma / CB_sigma); //m_wk->var("simple_gaus_sigma_k")->setConstant();
-    m_wk->var("simple_gaus_mu")->setVal(gaus_mu); //m_wk->var("simple_gaus_mu")->setConstant();
+    m_wk->var("single_CB_mu")->setVal(CB_mu); //m_wk->var("single_CB_mu")->setConstant();
+    m_wk->var("single_CB_sigma")->setVal(CB_sigma); //m_wk->var("single_CB_sigma")->setConstant();
+    m_wk->var("single_CB_alpha")->setVal(CB_alpha); //m_wk->var("single_CB_alpha")->setConstant();
+    m_wk->var("single_CB_n")->setVal(CB_n); //m_wk->var("single_CB_n")->setConstant();
+    m_wk->var("single_CB_frac")->setVal(CB_frac); //m_wk->var("single_CB_frac")->setConstant();
+    m_wk->var("single_gaus_sigma_k")->setVal(gaus_sigma / CB_sigma); //m_wk->var("single_gaus_sigma_k")->setConstant();
+    m_wk->var("single_gaus_mu")->setVal(gaus_mu); //m_wk->var("single_gaus_mu")->setConstant();
   }
 
 }
