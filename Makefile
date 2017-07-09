@@ -21,7 +21,7 @@ LIBS := $(shell root-config --libs) -lRooFit
 all: $(BIN_DIR)/fitFourBodyMass  $(BIN_DIR)/fitSignalShape
 
 clean:
-	rm -rf $(OBJECT_DIR)/*.o ${BIN_DIR}/*
+	rm -rf $(OBJECT_DIR)/*.o $(BIN_DIR)/* $(SOURCE_DIR)/*PDFDict*
 	@echo $(patsubst %, $(OBJECT_DIR)/%.o, $(FOUR_BODY_MASS_COMPONENTS))
 
 
@@ -39,6 +39,9 @@ $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cxx
 	${MKDIR} ${OBJECT_DIR}
 	$(CXX) $(OPTIMIZE) -c -o $@ $< $(CXXFLAGS)
 
-$(SOURCE_DIR)/ExpGausExpPDFDict.cxx
-	rootcling  -f ./src/ExpGausExpPDFDict.cxx -rml libWCSimRoot.so -I./include -I$(shell root-config --incdir) WCSimRootEvent.hh WCSimRootGeom.hh  WCSimPmtInfo.hh WCSimEnumerations.hh WCSimRootLinkDef.hh
+$(SOURCE_DIR)/DoubleSidedCrystalBallPDFDict.cxx:
+	rootcling -f src/DoubleSidedCrystalBallPDFDict.cxx -I./include DoubleSidedCrystalBallPDF.h
+
+$(SOURCE_DIR)/ExpGausExpPDFDict.cxx:
+	rootcling -f src/ExpGausExpPDFDict.cxx -I./include ExpGausExpPDF.h
 
