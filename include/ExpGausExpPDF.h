@@ -5,18 +5,18 @@
 #include "RooRealProxy.h"
 #include "TObject.h"
 
-class RooExpGausExp : public RooAbsPdf {
+class ExpGausExpPDF : public RooAbsPdf {
 
 public:
 
-  RooExpGausExp() {}
-  RooExpGausExp(const char* name, const char* title, RooAbsReal& _m,
+  ExpGausExpPDF() {}
+  ExpGausExpPDF(const char* name, const char* title, RooAbsReal& _m,
                 RooAbsReal& _m0, RooAbsReal& _sigma, RooAbsReal& _kL,
                 RooAbsReal& _kH);
 
-  RooExpGausExp(const RooExpGausExp& other, const char* name = 0);
-  virtual TObject* clone(const char* newname) const { return new RooExpGausExp(*this, newname); }
-  inline virtual ~RooExpGausExp() {}
+  ExpGausExpPDF(const ExpGausExpPDF& other, const char* name = 0);
+  virtual TObject* clone(const char* newname) const { return new ExpGausExpPDF(*this, newname); }
+  inline virtual ~ExpGausExpPDF() {}
 
   Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName = 0) const;
   Double_t analyticalIntegral(Int_t code, const char* rangeName = 0) const;
@@ -35,5 +35,5 @@ protected:
   Double_t evaluate() const;
 
 private:
-  ClassDef(RooExpGausExp, 2);
+  ClassDef(ExpGausExpPDF, 2);
 };

@@ -8,8 +8,8 @@ SOURCE_DIR   := src
 
 SOURCES := $(shell find $(SOURCE_DIR) -name "[^.]*.cxx")
 FOUR_BODY_MASS_COMPONENTS := fitFourBodyMass ParameterSet PDFModelFitter PlotStyle SignalModel
-SIGNAL_SHAPE_COMPONENTS := fitSignalShape PlotStyle RooDSCB RooDSCBDict RooExpGausExp RooExpGausExpDict SignalModel
-CXX   := g++ -m64 -Wall -Wextra #-Werror
+SIGNAL_SHAPE_COMPONENTS := fitSignalShape PlotStyle ExpGausExpPDF ExpGausExpPDFDict SignalModel
+CXX   := g++ -m64 -Wall -Wextra -Werror
 MKDIR := mkdir -p
 
 OPTIMIZE := -g -O2 -DMSG_LEVEL=3
@@ -38,3 +38,7 @@ $(BIN_DIR)/fitSignalShape: $(patsubst %, $(OBJECT_DIR)/%.o, $(SIGNAL_SHAPE_COMPO
 $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cxx
 	${MKDIR} ${OBJECT_DIR}
 	$(CXX) $(OPTIMIZE) -c -o $@ $< $(CXXFLAGS)
+
+$(SOURCE_DIR)/ExpGausExpPDFDict.cxx
+	rootcling  -f ./src/ExpGausExpPDFDict.cxx -rml libWCSimRoot.so -I./include -I$(shell root-config --incdir) WCSimRootEvent.hh WCSimRootGeom.hh  WCSimPmtInfo.hh WCSimEnumerations.hh WCSimRootLinkDef.hh
+

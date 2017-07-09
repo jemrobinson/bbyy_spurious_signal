@@ -1,11 +1,11 @@
-#include "RooDSCB.h"
+#include "DoubleSidedCrystalBallPDF.h"
 #include "Math/ProbFuncMathCore.h"
 #include "TMath.h"
 
-ClassImp(RooDSCB)
+ClassImp(DoubleSidedCrystalBallPDF)
 
 //_____________________________________________________________________________
-RooDSCB::RooDSCB(const char* name, const char* title,
+DoubleSidedCrystalBallPDF::DoubleSidedCrystalBallPDF(const char* name, const char* title,
                  RooAbsReal& _m, RooAbsReal& _m0,
                  RooAbsReal& _sigma, RooAbsReal& _alphaLo,
                  RooAbsReal& _nLo, RooAbsReal& _alphaHi,
@@ -23,7 +23,7 @@ RooDSCB::RooDSCB(const char* name, const char* title,
 
 
 //_____________________________________________________________________________
-RooDSCB::RooDSCB(const RooDSCB& other, const char* name) :
+DoubleSidedCrystalBallPDF::DoubleSidedCrystalBallPDF(const DoubleSidedCrystalBallPDF& other, const char* name) :
   RooAbsPdf(other, name), m("m", this, other.m), m0("m0", this, other.m0),
   sigma("sigma", this, other.sigma),
   alphaLo("alphaLo", this, other.alphaLo), nLo("nLo", this, other.nLo),
@@ -33,7 +33,7 @@ RooDSCB::RooDSCB(const RooDSCB& other, const char* name) :
 
 
 //_____________________________________________________________________________
-Double_t RooDSCB::evaluate() const
+Double_t DoubleSidedCrystalBallPDF::evaluate() const
 {
   Double_t t = (m - m0) / sigma;
 
@@ -53,7 +53,7 @@ Double_t RooDSCB::evaluate() const
 
 
 //_____________________________________________________________________________
-Int_t RooDSCB::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* /*rangeName*/) const
+Int_t DoubleSidedCrystalBallPDF::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* /*rangeName*/) const
 {
   if (matchArgs(allVars, analVars, m))
     return 1;
@@ -63,7 +63,7 @@ Int_t RooDSCB::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, co
 
 
 //_____________________________________________________________________________
-Double_t RooDSCB::analyticalIntegral(Int_t code, const char* rangeName) const
+Double_t DoubleSidedCrystalBallPDF::analyticalIntegral(Int_t code, const char* rangeName) const
 {
   assert(code == 1);
   double result = 0;
@@ -87,13 +87,13 @@ Double_t RooDSCB::analyticalIntegral(Int_t code, const char* rangeName) const
 }
 
 //_____________________________________________________________________________
-double RooDSCB::gaussianIntegral(double tmin, double tmax) const
+double DoubleSidedCrystalBallPDF::gaussianIntegral(double tmin, double tmax) const
 {
   return sqrt(TMath::TwoPi()) * (ROOT::Math::gaussian_cdf(tmax) - ROOT::Math::gaussian_cdf(tmin));
 }
 
 //_____________________________________________________________________________
-double RooDSCB::powerLawIntegral(double tmin, double tmax, double alpha, double n) const
+double DoubleSidedCrystalBallPDF::powerLawIntegral(double tmin, double tmax, double alpha, double n) const
 {
   double a = exp(-0.5 * alpha * alpha);
   double b = n / alpha - alpha;

@@ -52,6 +52,6 @@ namespace SpuriousSignal {
 
     void add_mass_point(const int& resonance_mass);
 
-    void set_initial_values(const int& resonance_mass);
+    // void set_initial_values(const int& resonance_mass);
   };
 }

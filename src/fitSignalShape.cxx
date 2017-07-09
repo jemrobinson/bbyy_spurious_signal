@@ -20,7 +20,7 @@ int main(int /*argc*/, char** /*argv*/)
   using namespace SpuriousSignal;
 
   // Disable RooFit and ROOT messages
-  // RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
+  RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
   gErrorIgnoreLevel = kBreak;
 
   // Construct mass and tag categories

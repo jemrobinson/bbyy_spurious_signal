@@ -5,21 +5,21 @@
 #include "RooRealProxy.h"
 #include "TObject.h"
 
-class RooDSCB : public RooAbsPdf {
+class DoubleSidedCrystalBallPDF : public RooAbsPdf {
 
 public:
 
-  RooDSCB() {}
-  RooDSCB(const char* name, const char* title, RooAbsReal& _m,
+  DoubleSidedCrystalBallPDF() {}
+  DoubleSidedCrystalBallPDF(const char* name, const char* title, RooAbsReal& _m,
           RooAbsReal& _m0, RooAbsReal& _sigma, RooAbsReal& _alphaLo,
           RooAbsReal& _nLo, RooAbsReal& _alphaHi, RooAbsReal& _nHi);
 
-  RooDSCB(const RooDSCB& other, const char* name = 0);
+  DoubleSidedCrystalBallPDF(const DoubleSidedCrystalBallPDF& other, const char* name = 0);
   virtual TObject* clone(const char* newname) const
   {
-    return new RooDSCB(*this, newname);
+    return new DoubleSidedCrystalBallPDF(*this, newname);
   }
-  inline virtual ~RooDSCB() { }
+  inline virtual ~DoubleSidedCrystalBallPDF() { }
 
   Int_t getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* rangeName = 0) const;
   Double_t analyticalIntegral(Int_t code, const char* rangeName = 0) const;
@@ -40,5 +40,5 @@ protected:
   Double_t evaluate() const;
 
 private:
-  ClassDef(RooDSCB, 1);
+  ClassDef(DoubleSidedCrystalBallPDF, 1);
 };
