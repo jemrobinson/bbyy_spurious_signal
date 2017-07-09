@@ -50,8 +50,9 @@ namespace SpuriousSignal {
     RooWorkspace* m_wk;
     RooDataSet* m_data;
 
+    /**
+     * Add a mass point to the simultaneous PDF
+     */
     void add_mass_point(const int& resonance_mass);
-
-    // void set_initial_values(const int& resonance_mass);
   };
 }

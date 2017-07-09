@@ -65,13 +65,12 @@ int main(int /*argc*/, char** /*argv*/)
       RooDataSet data("data_combined", "data_combined", RooArgSet(mass, weight), RooFit::Index(*model.mass_points()), RooFit::Import(dataset_map), RooFit::WeightVar(weight));
 
       // Fit PDFs to data
-      MSG_INFO("Preparing to fit PDF");
+      MSG_INFO("Preparing to fit PDFs to events");
       model.fit(data);
 
       // Plot output
       MSG_INFO("Preparing to plot results");
       model.plot();
-      // model.plot(dataset_map);
 
       // Write model to output file
       model.write(output_file_name);

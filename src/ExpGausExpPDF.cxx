@@ -47,17 +47,16 @@ Double_t ExpGausExpPDF::evaluate() const
 //_____________________________________________________________________________
 Int_t ExpGausExpPDF::getAnalyticalIntegral(RooArgSet& allVars, RooArgSet& analVars, const char* /*rangeName*/) const
 {
-  if (matchArgs(allVars, analVars, m))
+  if (matchArgs(allVars, analVars, m)) {
     return 1;
-
+  }
   return 0;
 }
 
 
 //_____________________________________________________________________________
-Double_t ExpGausExpPDF::analyticalIntegral(Int_t code, const char* rangeName) const
+Double_t ExpGausExpPDF::analyticalIntegral(Int_t /*code*/, const char* rangeName) const
 {
-  assert(code == 1);
   double result = 0;
   double sig = fabs((Double_t)sigma);
   double tmin = (m.min(rangeName) - m0) / sig;

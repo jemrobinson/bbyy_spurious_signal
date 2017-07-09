@@ -40,8 +40,8 @@ $(OBJECT_DIR)/%.o: $(SOURCE_DIR)/%.cxx
 	$(CXX) $(OPTIMIZE) -c -o $@ $< $(CXXFLAGS)
 
 $(SOURCE_DIR)/DoubleSidedCrystalBallPDFDict.cxx:
-	rootcling -f src/DoubleSidedCrystalBallPDFDict.cxx -I./include DoubleSidedCrystalBallPDF.h
+	rootcling -f src/DoubleSidedCrystalBallPDFDict.cxx -s bin/DoubleSidedCrystalBallPDFDict -I./include DoubleSidedCrystalBallPDF.h
 
 $(SOURCE_DIR)/ExpGausExpPDFDict.cxx:
-	rootcling -f src/ExpGausExpPDFDict.cxx -I./include ExpGausExpPDF.h
+	rootcling -f src/ExpGausExpPDFDict.cxx -s bin/ExpGausExpPDFDict -I./include ExpGausExpPDF.h
 

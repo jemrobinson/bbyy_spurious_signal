@@ -29,7 +29,7 @@ namespace SpuriousSignal {
     , m_wk(0)
     , m_data(0)
   {
-    m_wk = new RooWorkspace(("signal_model_" + mass_category + "Mass_" + tag_category + "tag").c_str());
+    m_wk = new RooWorkspace(("simultaneous_EGE_" + mass_category + "Mass_" + tag_category + "tag").c_str());
     // // Crystal Ball
     // m_wk->factory("CB_alpha_p0[0.40, 0, 5]");
     // m_wk->factory("CB_alpha_p1[-0.003, -0.01, 0.01]");
@@ -79,7 +79,7 @@ namespace SpuriousSignal {
   void SignalModel::build_simultaneous_PDF(RooRealVar& mass)
   {
     m_wk->import(mass);
-    m_wk->factory("Simultaneous::signal_model(mass_points)");
+    m_wk->factory("Simultaneous::simultaneous_EGE(mass_points)");
     for (auto resonance_mass : PlotStyle::resonance_masses(m_mass_category) ) { add_mass_point(resonance_mass); }
     // // Also build a simple CB+G shape
     // m_wk->factory("individual_CB_mu[260.325, 0, +INF]");
@@ -130,7 +130,7 @@ namespace SpuriousSignal {
     // m_wk->factory(("CBShape::CB_Xhh_m" + mX + "(mass, CB_mu_Xhh_m" + mX + ", CB_sigma_Xhh_m" + mX + ", CB_alpha_Xhh_m" + mX + ", CB_n_Xhh_m" + mX + ")").c_str());
     // m_wk->factory(("Gaussian::gaus_Xhh_m" + mX + "(mass, gaus_mu_Xhh_m" + mX + ", gaus_sigma_Xhh_m" + mX + ")").c_str());
     // m_wk->factory(("SUM::Xhh_m" + mX + "(CB_frac_Xhh_m" + mX +" * CB_Xhh_m" + mX + ", gaus_Xhh_m" + mX + ")").c_str());
-    dynamic_cast<RooSimultaneous*>(m_wk->pdf("signal_model"))->addPdf(*m_wk->pdf(("Xhh_m" + mX).c_str()), mX.c_str());
+    dynamic_cast<RooSimultaneous*>(m_wk->pdf("simultaneous_EGE"))->addPdf(*m_wk->pdf(("Xhh_m" + mX).c_str()), mX.c_str());
   }
 
   RooCategory* SignalModel::mass_points() {
@@ -140,19 +140,19 @@ namespace SpuriousSignal {
   void SignalModel::fit(RooDataSet& data)
   {
     m_data = &data;
-    MSG_INFO("Fitting PDFs to data");
-    m_wk->pdf("signal_model")->fitTo(data, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "minimize"), RooFit::Hesse(false), RooFit::Minos(false), RooFit::PrintLevel(-1));
-    m_wk->pdf("signal_model")->fitTo(data, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "migradimproved"), RooFit::Hesse(true), RooFit::Minos(false), RooFit::PrintLevel(-1));
-    MSG_INFO("EGE_mu_p0: " << m_wk->var("EGE_mu_p0")->getVal());
-    MSG_INFO("EGE_mu_p1: " << m_wk->var("EGE_mu_p1")->getVal());
-    MSG_INFO("EGE_sigma_p0: " << m_wk->var("EGE_sigma_p0")->getVal());
-    MSG_INFO("EGE_sigma_p1: " << m_wk->var("EGE_sigma_p1")->getVal());
-    MSG_INFO("EGE_kL_p0: " << m_wk->var("EGE_kL_p0")->getVal());
-    MSG_INFO("EGE_kL_p1: " << m_wk->var("EGE_kL_p1")->getVal());
-    MSG_INFO("EGE_kL_p2: " << m_wk->var("EGE_kL_p2")->getVal());
-    MSG_INFO("EGE_kH_p0: " << m_wk->var("EGE_kH_p0")->getVal());
-    MSG_INFO("EGE_kH_p1: " << m_wk->var("EGE_kH_p1")->getVal());
-    MSG_INFO("EGE_kH_p2: " << m_wk->var("EGE_kH_p2")->getVal());
+    MSG_INFO("Fitting simultaneous PDF to input events");
+    m_wk->pdf("simultaneous_EGE")->fitTo(data, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "minimize"), RooFit::Hesse(false), RooFit::Minos(false), RooFit::PrintLevel(-1));
+    m_wk->pdf("simultaneous_EGE")->fitTo(data, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "migradimproved"), RooFit::Hesse(true), RooFit::Minos(false), RooFit::PrintLevel(-1));
+    MSG_INFO("... EGE_mu_p0:    " << m_wk->var("EGE_mu_p0")->getVal());
+    MSG_INFO("... EGE_mu_p1:    " << m_wk->var("EGE_mu_p1")->getVal());
+    MSG_INFO("... EGE_sigma_p0: " << m_wk->var("EGE_sigma_p0")->getVal());
+    MSG_INFO("... EGE_sigma_p1: " << m_wk->var("EGE_sigma_p1")->getVal());
+    MSG_INFO("... EGE_kL_p0:    " << m_wk->var("EGE_kL_p0")->getVal());
+    MSG_INFO("... EGE_kL_p1:    " << m_wk->var("EGE_kL_p1")->getVal());
+    MSG_INFO("... EGE_kL_p2:    " << m_wk->var("EGE_kL_p2")->getVal());
+    MSG_INFO("... EGE_kH_p0:    " << m_wk->var("EGE_kH_p0")->getVal());
+    MSG_INFO("... EGE_kH_p1:    " << m_wk->var("EGE_kH_p1")->getVal());
+    MSG_INFO("... EGE_kH_p2:    " << m_wk->var("EGE_kH_p2")->getVal());
   }
 
   void SignalModel::write(const std::string& output_file_name)
@@ -186,10 +186,10 @@ namespace SpuriousSignal {
     // m_wk->var("CB_frac_p1")->setConstant();
     // // MSG_INFO("CB_frac_p1: " << m_wk->var("CB_frac_p1")->getVal());
     m_wk->factory("mass_resonance[300, 0, 2000]");
-    m_wk->factory("expr::EGE_mu('EGE_mu_p0 + EGE_mu_p1 * mass_resonance', EGE_mu_p0, EGE_mu_p1)");
-    m_wk->factory(("expr::EGE_sigma('TMath::Min(TMath::Max(EGE_sigma_p0 + EGE_sigma_p1 * mass_resonance, " + std::to_string(m_mass_category == "low" ? 3.0 : 6.0 ) + "), " + std::to_string(m_mass_category == "low" ? 10.0 : 18.0 ) + ")', EGE_sigma_p0, EGE_sigma_p1)").c_str());
-    m_wk->factory(("expr::EGE_kL('TMath::Min(TMath::Max(EGE_kL_p0 + EGE_kL_p1 * mass_resonance + EGE_kL_p2 * mass_resonance * mass_resonance, 0.1), " + std::to_string(m_mass_category == "low" ? 3.0 : 1.5) + ")', EGE_kL_p0, EGE_kL_p1, EGE_kL_p2)").c_str());
-    m_wk->factory(("expr::EGE_kH('TMath::Min(TMath::Max(EGE_kH_p0 + EGE_kH_p1 * mass_resonance + EGE_kH_p2 * mass_resonance * mass_resonance, 0.1), " + std::to_string(m_mass_category == "low" ? 3.0 : 1.0) + ")', EGE_kH_p0, EGE_kH_p1, EGE_kH_p2)").c_str());
+    m_wk->factory("expr::EGE_mu('EGE_mu_p0 + EGE_mu_p1 * mass_resonance', EGE_mu_p0, EGE_mu_p1, mass_resonance)");
+    m_wk->factory(("expr::EGE_sigma('TMath::Min(TMath::Max(EGE_sigma_p0 + EGE_sigma_p1 * mass_resonance, " + std::to_string(m_mass_category == "low" ? 3.0 : 6.0 ) + "), " + std::to_string(m_mass_category == "low" ? 10.0 : 18.0 ) + ")', EGE_sigma_p0, EGE_sigma_p1, mass_resonance)").c_str());
+    m_wk->factory(("expr::EGE_kL('TMath::Min(TMath::Max(EGE_kL_p0 + EGE_kL_p1 * mass_resonance + EGE_kL_p2 * mass_resonance * mass_resonance, 0.1), " + std::to_string(m_mass_category == "low" ? 3.0 : 1.5) + ")', EGE_kL_p0, EGE_kL_p1, EGE_kL_p2, mass_resonance)").c_str());
+    m_wk->factory(("expr::EGE_kH('TMath::Min(TMath::Max(EGE_kH_p0 + EGE_kH_p1 * mass_resonance + EGE_kH_p2 * mass_resonance * mass_resonance, 0.1), " + std::to_string(m_mass_category == "low" ? 3.0 : 1.0) + ")', EGE_kH_p0, EGE_kH_p1, EGE_kH_p2, mass_resonance)").c_str());
     m_wk->factory("ExpGausExpPDF::signal_PDF(mass, EGE_mu, EGE_sigma, EGE_kL, EGE_kH)");
     // m_wk->factory("expr::CB_mu('CB_mu_p0 + CB_mu_p1 * mass_resonance', CB_mu_p0, CB_mu_p1, mass_resonance)");
     // m_wk->factory("expr::CB_alpha('CB_alpha_p0 + CB_alpha_p1 * mass_resonance + CB_alpha_p2 * mass_resonance * mass_resonance', CB_alpha_p0, CB_alpha_p1, CB_alpha_p2, mass_resonance)");
@@ -218,12 +218,12 @@ namespace SpuriousSignal {
       std::string mX(std::to_string(PlotStyle::resonance_masses(m_mass_category).at(idx)));
       int colour(PlotStyle::colours().at(idx));
       m_data->plotOn(frame, RooFit::Cut(("mass_points==mass_points::" + mX).c_str()), RooFit::MarkerColor(colour));
-      m_wk->pdf("signal_model")->plotOn(frame, RooFit::Slice(*m_wk->cat("mass_points"), mX.c_str()), RooFit::ProjWData(*m_wk->cat("mass_points"), *m_data), RooFit::LineColor(colour));
+      m_wk->pdf("simultaneous_EGE")->plotOn(frame, RooFit::Slice(*m_wk->cat("mass_points"), mX.c_str()), RooFit::ProjWData(*m_wk->cat("mass_points"), *m_data), RooFit::LineColor(colour));
     }
     frame->Draw();
     frame->SetMinimum(0);
-    canvas.Print(("plots/signal_model_" + m_mass_category + "Mass_" + m_tag_category + "tag_overall.pdf").c_str());
-    MSG_INFO("Created plots/signal_model_" << m_mass_category << "Mass_" << m_tag_category << "tag_overall.pdf");
+    canvas.Print(("plots/simultaneous_EGE_" + m_mass_category + "Mass_" + m_tag_category + "tag_overall.pdf").c_str());
+    MSG_INFO("Created plots/simultaneous_EGE_" << m_mass_category << "Mass_" << m_tag_category << "tag_overall.pdf");
 
     // Plot each fit individually
     for (auto resonance_mass : PlotStyle::resonance_masses(m_mass_category)) {
@@ -239,10 +239,10 @@ namespace SpuriousSignal {
       m_wk->var("individual_EGE_kL")->setVal(m_wk->function(("EGE_kL_Xhh_m" + mX).c_str())->getVal());
       m_wk->var("individual_EGE_kH")->setVal(m_wk->function(("EGE_kH_Xhh_m" + mX).c_str())->getVal());
       m_wk->pdf("individual_EGE")->fitTo(*data_slice, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "migradimproved"), RooFit::PrintLevel(-1));
-      MSG_INFO("individual_EGE_mu: " << m_wk->var("individual_EGE_mu")->getVal());
-      MSG_INFO("individual_EGE_sigma: " << m_wk->var("individual_EGE_sigma")->getVal());
-      MSG_INFO("individual_EGE_kL: " << m_wk->var("individual_EGE_kL")->getVal());
-      MSG_INFO("individual_EGE_kH: " << m_wk->var("individual_EGE_kH")->getVal());
+      MSG_INFO("... individual_EGE_mu:    " << m_wk->var("individual_EGE_mu")->getVal());
+      MSG_INFO("... individual_EGE_sigma: " << m_wk->var("individual_EGE_sigma")->getVal());
+      MSG_INFO("... individual_EGE_kL:    " << m_wk->var("individual_EGE_kL")->getVal());
+      MSG_INFO("... individual_EGE_kH:    " << m_wk->var("individual_EGE_kH")->getVal());
       // std::cout << m_wk->pdf("individual_EGE")->getParameters(*data_slice) << std::endl;
       // m_wk->pdf("individual_EGE")->Print("v");
       // MSG_INFO("individual_EGE_mu: " << m_wk->var("individual_EGE_mu")->getVal());
@@ -261,7 +261,7 @@ namespace SpuriousSignal {
       RooPlot* frame = m_wk->var("mass")->frame(mass_low, mass_high, nBins);
       RooPlot* frame_ratio = m_wk->var("mass")->frame(mass_low, mass_high, nBins);
       m_data->plotOn(frame, RooFit::Cut(("mass_points==mass_points::" + mX).c_str()), RooFit::DataError(RooAbsData::SumW2), RooFit::MarkerColor(kBlack));
-      m_wk->pdf("signal_model")->plotOn(frame, RooFit::Slice(*m_wk->cat("mass_points"), mX.c_str()), RooFit::ProjWData(*m_wk->cat("mass_points"), *m_data), RooFit::LineColor(kRed));
+      m_wk->pdf("simultaneous_EGE")->plotOn(frame, RooFit::Slice(*m_wk->cat("mass_points"), mX.c_str()), RooFit::ProjWData(*m_wk->cat("mass_points"), *m_data), RooFit::LineColor(kRed));
       RooHist* pull_hist_full = frame->pullHist(); pull_hist_full->SetLineColor(kRed); pull_hist_full->SetMarkerColor(kRed);
       data_slice->plotOn(frame, RooFit::DataError(RooAbsData::SumW2), RooFit::Invisible());
       m_wk->pdf("individual_EGE")->plotOn(frame, RooFit::LineColor(kBlue));
@@ -320,8 +320,8 @@ namespace SpuriousSignal {
       frame_ratio->Draw();
       TLine l(frame_ratio->GetXaxis()->GetXmin(), 0.0, frame_ratio->GetXaxis()->GetXmax(), 0.0);
       l.SetLineColor(kRed); l.SetLineWidth(2); l.SetLineStyle(kDashed); l.Draw();
-      canvas.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/signal_model_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + mX + ".pdf").c_str());
-      MSG_INFO("Created plots/" << m_mass_category << "Mass_" << m_tag_category << "tag/signal_model_" << m_mass_category << "Mass_" << m_tag_category << "tag_mX_" << mX << ".pdf");
+      canvas.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/simultaneous_EGE_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + mX + ".pdf").c_str());
+      MSG_INFO("Created plots/" << m_mass_category << "Mass_" << m_tag_category << "tag/simultaneous_EGE_" << m_mass_category << "Mass_" << m_tag_category << "tag_mX_" << mX << ".pdf");
     }
     // MSG_INFO("CB_mu: " << best_fit.at(0));
     // MSG_INFO("CB_sigma: " << best_fit.at(1));
@@ -331,27 +331,4 @@ namespace SpuriousSignal {
     // MSG_INFO("gaus_sigma_k: " << best_fit.at(5));
     // MSG_INFO("CB_frac: " << best_fit.at(6));
   }
-
-  // void SignalModel::set_initial_values(const int& resonance_mass) {
-  //   double CB_mu(0.5), CB_sigma(0.5), CB_alpha(0.5), CB_n(0.5), CB_frac(0.5), gaus_mu(0.5), gaus_sigma(0.5);
-  //   if (m_mass_category == "low") {
-  //     if (m_tag_category == "0") {
-  //       if (resonance_mass == 260) { CB_mu = 260.33; CB_sigma = 3.90; CB_alpha = 2.90; CB_n = 10; CB_frac = 0.72; gaus_mu = 273.54; gaus_sigma = 9.15; }
-  //       else if (resonance_mass == 275) { CB_mu = 275.13; CB_sigma = 4.74; CB_alpha = 0.94; CB_n = 10; CB_frac = 0.58; gaus_mu = 282.25; gaus_sigma = 15.22; }
-  //       else if (resonance_mass == 300) { CB_mu = 300.09; CB_sigma = 5.45; CB_alpha = 0.48; CB_n = 10; CB_frac = 0.72; gaus_mu = 314.30; gaus_sigma = 11.59; }
-  //       else if (resonance_mass == 325) { CB_mu = 325.00; CB_sigma = 6.14; CB_alpha = 0.46; CB_n = 10; CB_frac = 0.70; gaus_mu = 339.98; gaus_sigma = 12.39; }
-  //       else if (resonance_mass == 350) { CB_mu = 350.73; CB_sigma = 6.51; CB_alpha = 1.37; CB_n = 10; CB_frac = 0.39; gaus_mu = 348.59; gaus_sigma = 24.40; }
-  //       else if (resonance_mass == 400) { CB_mu = 400.94; CB_sigma = 6.11; CB_alpha = 0.31; CB_n = 10; CB_frac = 0.63; gaus_mu = 416.13; gaus_sigma = 15.24; }
-  //       else { return; }
-  //     }
-  //   }
-  //   m_wk->var("individual_CB_mu")->setVal(CB_mu); //m_wk->var("individual_CB_mu")->setConstant();
-  //   m_wk->var("individual_CB_sigma")->setVal(CB_sigma); //m_wk->var("individual_CB_sigma")->setConstant();
-  //   m_wk->var("individual_CB_alpha")->setVal(CB_alpha); //m_wk->var("individual_CB_alpha")->setConstant();
-  //   m_wk->var("individual_CB_n")->setVal(CB_n); //m_wk->var("individual_CB_n")->setConstant();
-  //   m_wk->var("individual_CB_frac")->setVal(CB_frac); //m_wk->var("individual_CB_frac")->setConstant();
-  //   m_wk->var("individual_gaus_sigma_k")->setVal(gaus_sigma / CB_sigma); //m_wk->var("individual_gaus_sigma_k")->setConstant();
-  //   m_wk->var("individual_gaus_mu")->setVal(gaus_mu); //m_wk->var("individual_gaus_mu")->setConstant();
-  // }
-
 }
