@@ -42,7 +42,7 @@ namespace SpuriousSignal {
     /**
      * Expose mass points publicly, since these are needed externally to construct the combined dataset
      */
-    RooCategory* mass_points();
+    RooCategory* mass_points() const;
 
   private:
     std::string m_mass_category;

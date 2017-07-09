@@ -80,27 +80,6 @@ namespace SpuriousSignal {
     m_wk->import(mass_points);
   }
 
-  std::string SignalModel::parameterised_CBGA(const int& parameter) const
-  {
-    if (m_mass_category == "low" && m_tag_category == "1") {
-      std::vector<double> parameters({95.95, -0.6169, 0.0009952, 0.1473, -0.001951, 4.71, 0.003299, 0.0, 4.801, 0.003105, 0.0, -9.584, 0.06117, -3.98e-05, 248.8, -1.708, 0.003045});
-      return std::to_string(parameters.at(parameter));
-    }
-    if (m_mass_category == "high" && m_tag_category == "1") {
-      std::vector<double> parameters({-4.974, 0.01985, -1.36e-05, -0.5062, 6.076e-05, 21.71, 0.935, 3.826e-05, 64.61, 0.8174, 0.0001511, 10.39, -0.01581, 2.328e-05, -21.5, 0.1165, -5.918e-05});
-      return std::to_string(parameters.at(parameter));
-    }
-    if (m_mass_category == "low" && m_tag_category == "2") {
-      std::vector<double> parameters({36.15, -0.2098, 0.0003138, 0.1913, -0.001764, 4.717, 0.003271, 0.0, 4.7, 0.003387, 0.0, -9.18, 0.05983, -4.638e-05, -105.7, 0.7039, -0.001057});
-      return std::to_string(parameters.at(parameter));
-    }
-    if (m_mass_category == "high" && m_tag_category == "2") {
-      std::vector<double> parameters({2.053, -0.003402, 4.28e-06, -0.4215, -0.000229, 4.241, 0.9892, 2.646e-06, 13.43, 0.9817, 1.394e-05, 3.707, 0.002918, 9.237e-06, -3.17, 0.04017, 3.898e-06});
-      return std::to_string(parameters.at(parameter));
-    }
-    return "0.0";
-  }
-
   void SignalModel::build_simultaneous_PDF(RooRealVar& mass)
   {
     m_wk->import(mass);
@@ -133,7 +112,7 @@ namespace SpuriousSignal {
     dynamic_cast<RooSimultaneous*>(m_wk->pdf("simultaneous_EGE"))->addPdf(*m_wk->pdf(("Xhh_m" + mX).c_str()), mX.c_str());
   }
 
-  RooCategory* SignalModel::mass_points() {
+  RooCategory* SignalModel::mass_points() const {
     return m_wk->cat("mass_points");
   }
 
@@ -223,13 +202,13 @@ namespace SpuriousSignal {
       m_wk->pdf("individual_EGE")->plotOn(frame, RooFit::LineColor(kBlue));
       RooHist* pull_hist_simple = frame->pullHist(); pull_hist_simple->SetLineColor(kBlue); pull_hist_simple->SetMarkerColor(kBlue);
       m_wk->var("mass_resonance")->setVal(resonance_mass);
-      MSG_INFO("CBGA_mu_CB: " << m_wk->function("CBGA_mu_CB")->getVal());
-      MSG_INFO("CBGA_sigma_CB: " << m_wk->function("CBGA_sigma_CB")->getVal());
-      MSG_INFO("CBGA_alpha_CB: " << m_wk->function("CBGA_alpha_CB")->getVal());
-      MSG_INFO("CBGA_n_CB: " << m_wk->var("CBGA_n_CB")->getVal());
-      MSG_INFO("CBGA_f_CB: " << m_wk->function("CBGA_n_CB")->getVal());
-      MSG_INFO("CBGA_mu_GA: " << m_wk->function("CBGA_mu_GA")->getVal());
-      MSG_INFO("CBGA_sigma_GA: " << m_wk->function("CBGA_sigma_GA")->getVal());
+      // MSG_INFO("CBGA_mu_CB: " << m_wk->function("CBGA_mu_CB")->getVal());
+      // MSG_INFO("CBGA_sigma_CB: " << m_wk->function("CBGA_sigma_CB")->getVal());
+      // MSG_INFO("CBGA_alpha_CB: " << m_wk->function("CBGA_alpha_CB")->getVal());
+      // MSG_INFO("CBGA_n_CB: " << m_wk->var("CBGA_n_CB")->getVal());
+      // MSG_INFO("CBGA_f_CB: " << m_wk->function("CBGA_n_CB")->getVal());
+      // MSG_INFO("CBGA_mu_GA: " << m_wk->function("CBGA_mu_GA")->getVal());
+      // MSG_INFO("CBGA_sigma_GA: " << m_wk->function("CBGA_sigma_GA")->getVal());
       m_wk->pdf("CBGA")->plotOn(frame, RooFit::LineColor(kGreen + 3));
       // Construct a histogram with the pulls of the data w.r.t the curve
       frame_ratio->addPlotable(pull_hist_full, "P");
@@ -269,5 +248,29 @@ namespace SpuriousSignal {
       canvas_individual.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/signal_model_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + mX + ".pdf").c_str());
       MSG_INFO("Created plots/" << m_mass_category << "Mass_" << m_tag_category << "tag/signal_model_" << m_mass_category << "Mass_" << m_tag_category << "tag_mX_" << mX << ".pdf");
     }
+  }
+
+  std::string SignalModel::parameterised_CBGA(const int& parameter) const
+  {
+    std::vector<double> parameters;
+    if (m_mass_category == "low") {
+      if (m_tag_category == "1") {
+        std::vector<double> _p({95.95, -0.6169, 0.0009952, 0.1473, -0.001951, 4.71, 0.003299, 0.0, 4.801, 0.003105, 0.0, -9.584, 0.06117, -3.98e-05, 248.8, -1.708, 0.003045});
+        parameters.insert(parameters.end(), _p.begin(), _p.end());
+      } else if (m_tag_category == "2") {
+        std::vector<double> _p({36.15, -0.2098, 0.0003138, 0.1913, -0.001764, 4.717, 0.003271, 0.0, 4.7, 0.003387, 0.0, -9.18, 0.05983, -4.638e-05, -105.7, 0.7039, -0.001057});
+        parameters.insert(parameters.end(), _p.begin(), _p.end());
+      }
+    } else if (m_mass_category == "high") {
+      if (m_tag_category == "1") {
+        std::vector<double> _p({-4.974, 0.01985, -1.36e-05, -0.5062, 6.076e-05, 21.71, 0.935, 3.826e-05, 64.61, 0.8174, 0.0001511, 10.39, -0.01581, 2.328e-05, -21.5, 0.1165, -5.918e-05});
+        parameters.insert(parameters.end(), _p.begin(), _p.end());
+      } else if (m_tag_category == "2") {
+        std::vector<double> _p({2.053, -0.003402, 4.28e-06, -0.4215, -0.000229, 4.241, 0.9892, 2.646e-06, 13.43, 0.9817, 1.394e-05, 3.707, 0.002918, 9.237e-06, -3.17, 0.04017, 3.898e-06});
+        parameters.insert(parameters.end(), _p.begin(), _p.end());
+      }
+    }
+    if (parameters.empty()) { return "0.0"; }
+    return std::to_string(parameters.at(parameter));
   }
 }

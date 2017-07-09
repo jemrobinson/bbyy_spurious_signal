@@ -3,6 +3,7 @@
 *.pdf
 *.tex
 *.root
+src/*Dict.cxx
 
 # Prerequisites
 *.d
