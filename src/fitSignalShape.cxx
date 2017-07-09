@@ -20,12 +20,12 @@ int main(int /*argc*/, char** /*argv*/)
   using namespace SpuriousSignal;
 
   // Disable RooFit and ROOT messages
-  RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
+  RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR); //RooFit::FATAL
   gErrorIgnoreLevel = kBreak;
 
   // Construct mass and tag categories
   // std::vector<std::string> mass_categories({"low"});
-  // std::vector<std::string> tag_categories({"0"});
+  // std::vector<std::string> tag_categories({"1"});
   std::vector<std::string> mass_categories({"low", "high"});
   std::vector<std::string> tag_categories({"0", "1", "2"});
 
@@ -41,7 +41,6 @@ int main(int /*argc*/, char** /*argv*/)
   for (auto mass_category : mass_categories) {
     for (auto tag_category : tag_categories) {
       // Define one mass variable per workspace
-      // RooRealVar mass("mass", "m_{yyjj}", (mass_category == "low" ? 245 : 335), (mass_category == "low" ? 485 : 1140), "GeV");
       RooRealVar mass("mass", "m_{yyjj}", 10, 10000, "GeV");
 
       // Construct signal model
@@ -55,7 +54,6 @@ int main(int /*argc*/, char** /*argv*/)
         std::string mX(std::to_string(resonance_mass));
         RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_Xhh_m" + mX + "_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(mass, weight));
         RooDataSet* _data_full = new RooDataSet("data", "data", RooArgSet(mass, weight), RooFit::Import(*ptr_raw_data), RooFit::WeightVar(weight));
-        // MSG_INFO("FULL Loaded " << _data_full->numEntries() << " mX = " << resonance_mass << " events for " << mass_category << " mass, " << tag_category << "-tag category, corresponding to " << _data_full->sumEntries() << " data events");
         RooDataSet* _data = dynamic_cast<RooDataSet*>(_data_full->reduce(RooFit::Cut(("0.9 * " + mX + " < mass && mass < 1.1 * " + mX).c_str())));
         MSG_INFO("Loaded " << _data->numEntries() << " mX = " << resonance_mass << " events for " << mass_category << " mass, " << tag_category << "-tag category, corresponding to " << _data->sumEntries() << " data events");
         dataset_map[mX] = _data;

@@ -54,5 +54,8 @@ namespace SpuriousSignal {
      * Add a mass point to the simultaneous PDF
      */
     void add_mass_point(const int& resonance_mass);
+
+    std::string parameterised_CBGA(const int& parameter) const;
+
   };
 }
