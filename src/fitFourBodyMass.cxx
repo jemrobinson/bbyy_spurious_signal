@@ -141,7 +141,7 @@ int main(int argc, char** argv)
       f_ROOT.Close();
 
       // Recreate output text file
-      std::string f_output_text("output/spurious_signal_" + mass_category + "Mass_" + tag_category + "tag" + fileSuffix + ".csv");
+      std::string f_output_text("output/csv/spurious_signal_" + mass_category + "Mass_" + tag_category + "tag" + fileSuffix + ".csv");
       std::ofstream f_text;
       f_text.open(f_output_text, (appendToFile ? std::ios::app : std::ios::trunc));
       f_text.close();
@@ -178,8 +178,6 @@ int main(int argc, char** argv)
         for (auto& parameter_set : parameter_sets) { parameter_set.restore_values(); }
         wk->var("mass_resonance")->setVal(mass_point);
         wk->var("mass_resonance")->setConstant(true);
-        // MSG_INFO("splusb model_params->Print()");
-        // splusb_functions.back()->getParameters(*wk->var("mass"))->Print("v");
 
         // Fit, plot and output results
         fits_splusb.fit();

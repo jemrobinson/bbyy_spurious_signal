@@ -49,6 +49,9 @@ namespace SpuriousSignal {
     std::string m_tag_category;
     RooWorkspace* m_wk;
     RooDataSet* m_data;
+    std::vector<std::string> m_models;
+    std::map< std::string, std::vector<std::string> > m_model_metaparameters;
+    std::map< std::string, std::vector<std::string> > m_model_parameters;
 
     /**
      * Add a mass point to the simultaneous PDF

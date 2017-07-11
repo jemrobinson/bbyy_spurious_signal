@@ -43,11 +43,6 @@ int main(int /*argc*/, char** /*argv*/)
       // Define one mass variable per workspace
       RooRealVar mass("mass", "m_{yyjj}", 10, 10000, "GeV");
 
-      // Construct signal model
-      MSG_INFO("Constructing simultaneous PDF");
-      SignalModel model(mass_category, tag_category);
-      model.build_simultaneous_PDF(mass);
-
       // Load data for each mass point
       std::map<std::string, RooDataSet*> dataset_map;
       for (auto resonance_mass : PlotStyle::resonance_masses(mass_category)) {
@@ -58,6 +53,11 @@ int main(int /*argc*/, char** /*argv*/)
         MSG_INFO("Loaded " << _data->numEntries() << " mX = " << resonance_mass << " events for " << mass_category << " mass, " << tag_category << "-tag category, corresponding to " << _data->sumEntries() << " data events");
         dataset_map[mX] = _data;
       }
+
+      // Construct signal model
+      MSG_INFO("Constructing simultaneous PDF");
+      SignalModel model(mass_category, tag_category);
+      model.build_simultaneous_PDF(mass);
 
       // Construct combined dataset in terms of  (mass, mass_point)
       RooDataSet data("data_combined", "data_combined", RooArgSet(mass, weight), RooFit::Index(*model.mass_points()), RooFit::Import(dataset_map), RooFit::WeightVar(weight));

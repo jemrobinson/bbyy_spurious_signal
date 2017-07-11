@@ -19,7 +19,7 @@ for mass_category in ["high", "low"]:
 
     for tag_category in ["0", "1", "2"]:
         # Check that input file exists
-        input_path = os.path.join(base_path, "output", "spurious_signal_{}Mass_{}tag.csv".format(mass_category, tag_category))
+        input_path = os.path.join(base_path, "output", "csv", "spurious_signal_{}Mass_{}tag.csv".format(mass_category, tag_category))
         if not os.path.exists(input_path):
             print "{} does not exist".format(input_path)
             continue
