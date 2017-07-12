@@ -50,15 +50,19 @@ namespace SpuriousSignal {
     RooWorkspace* m_wk;
     RooDataSet* m_data;
     std::vector<std::string> m_models;
-    std::map< std::string, std::vector<std::string> > m_model_metaparameters;
     std::map< std::string, std::vector<std::string> > m_model_parameters;
+    std::map< std::string, std::vector<std::string> > m_model_metaparameters;
 
     /**
      * Add a mass point to the simultaneous PDF
      */
     void add_mass_point(const int& resonance_mass);
 
-    std::string parameterised_CBGA(const int& parameter) const;
+    void add_parameterisation(const std::string& name);
+
+    void append(std::vector<double>& target, std::vector<double> source);
+
+    double get_initial_value(const std::string& name);
 
   };
 }

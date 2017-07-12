@@ -49,7 +49,9 @@ int main(int /*argc*/, char** /*argv*/)
         std::string mX(std::to_string(resonance_mass));
         RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_Xhh_m" + mX + "_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(mass, weight));
         RooDataSet* _data_full = new RooDataSet("data", "data", RooArgSet(mass, weight), RooFit::Import(*ptr_raw_data), RooFit::WeightVar(weight));
+        // dataset_map[mX] = _data_full;
         RooDataSet* _data = dynamic_cast<RooDataSet*>(_data_full->reduce(RooFit::Cut(("0.9 * " + mX + " < mass && mass < 1.1 * " + mX).c_str())));
+        // RooDataSet* _data = dynamic_cast<RooDataSet*>(_data_full->reduce(RooFit::Cut(("0.95 * " + mX + " < mass && mass < 1.05 * " + mX).c_str())));
         MSG_INFO("Loaded " << _data->numEntries() << " mX = " << resonance_mass << " events for " << mass_category << " mass, " << tag_category << "-tag category, corresponding to " << _data->sumEntries() << " data events");
         dataset_map[mX] = _data;
       }
