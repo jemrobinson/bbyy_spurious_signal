@@ -27,8 +27,9 @@ clean:
 
 $(BIN_DIR)/fitFourBodyMass: $(patsubst %, $(OBJECT_DIR)/%.o, $(FOUR_BODY_MASS_COMPONENTS))
 	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OUTPUT_DIR} ${PLOT_DIR}
-	${MKDIR} ${PLOT_DIR}/lowMass_0tag ${PLOT_DIR}/lowMass_1tag ${PLOT_DIR}/lowMass_2tag
-	${MKDIR} ${PLOT_DIR}/highMass_0tag ${PLOT_DIR}/highMass_1tag ${PLOT_DIR}/highMass_2tag
+	${MKDIR} ${PLOT_DIR}/lowMass_0tag/mass_points ${PLOT_DIR}/highMass_0tag/mass_points
+	${MKDIR} ${PLOT_DIR}/lowMass_1tag/mass_points ${PLOT_DIR}/highMass_1tag/mass_points
+	${MKDIR} ${PLOT_DIR}/lowMass_2tag/mass_points ${PLOT_DIR}/highMass_2tag/mass_points
 	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 $(BIN_DIR)/fitSignalShape: $(patsubst %, $(OBJECT_DIR)/%.o, $(SIGNAL_SHAPE_COMPONENTS))

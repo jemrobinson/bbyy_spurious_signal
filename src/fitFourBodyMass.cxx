@@ -2,6 +2,7 @@
 #include "ParameterSet.h"
 #include "Logger.h"
 #include "PDFModelFitter.h"
+#include "PlotStyle.h"
 #include "SignalModel.h"
 // STL
 #include <fstream>
@@ -72,6 +73,7 @@ int main(int argc, char** argv)
       RooWorkspace* wk(0);
       f_input.GetObject(("signal_model_" + mass_category + "Mass_" + tag_category + "tag").c_str(), wk);
       if (!wk) { MSG_ERROR("Could not open workspace!"); }
+      wk->var("mass")->setRange(mass_range.first, mass_range.second);
 
       // Get the data
       RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_SM_bkg_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(*wk->var("mass"), weight));
@@ -89,13 +91,11 @@ int main(int argc, char** argv)
         std::generate(mass_points.begin(), mass_points.end(), [&mass_point, &MASS_STEP] { return mass_point += MASS_STEP; });
       }
 
-      // Novosibirsk
+      // Novosibirsk: 0 if  -tail < width / ( peak - x ) => (peak - x) > width / (-tail)
       RooRealVar novosibirsk_peak("novosibirsk_peak", "peak of Novosibirsk", 270, peak_range.first, peak_range.second);
       RooRealVar novosibirsk_tail("novosibirsk_tail", "tail of Novosibirsk", -1, -2, 10);
       RooRealVar novosibirsk_width("novosibirsk_width", "width of Novosibirsk", 30, 0, 500);
       RooNovosibirsk novosibirsk("novosibirsk", "novosibirsk", *wk->var("mass"), novosibirsk_peak, novosibirsk_width, novosibirsk_tail);
-      // 0 if  -tail < width / ( peak - x )
-      // (peak - x) > width / (-tail)
       // Modified Gamma
       RooRealVar gamma_alpha0("gamma_alpha0", "alpha0 of Gamma", (mass_category == "low" ? 1.5 : 0.08), 0, 1000);
       RooRealVar gamma_alpha1("gamma_alpha1", "alpha1 of Gamma", 0.003, -0.001, 0.01);
@@ -111,17 +111,31 @@ int main(int argc, char** argv)
       RooRealVar landau_sigma1("landau_sigma1", "sigma1 of Landau", (mass_category == "low" ? 0.05 : 0), -1, 1);
       RooFormulaVar landau_sigma("landau_sigma", "landau_sigma0 + landau_sigma1 * mass", RooArgList(*wk->var("mass"), landau_sigma0, landau_sigma1));
       RooGenericPdf modified_landau("modified_landau", "modified_landau", "TMath::Landau(mass, landau_mean, landau_sigma)", RooArgList(*wk->var("mass"), landau_mean, landau_sigma));
-      // Exponential polynominal 2
-      RooRealVar exppoly_p1("exppoly_p1", "exppoly_p1", -0.01, -1, 1);
-      RooRealVar exppoly_p2("exppoly_p2", "exppoly_p2", 1e-5, -0.01, 0.01);
-      RooGenericPdf exppoly("exppoly", "exppoly", "TMath::Exp(exppoly_p1 * mass + exppoly_p2 * mass * mass)", RooArgList(*wk->var("mass"), exppoly_p1, exppoly_p2));
+      // Exponential polynominal: degree-1
+      RooRealVar exppoly1_p1("exppoly1_p1", "exppoly1_p1", -6e-03, -1.0, 0.0);
+      RooGenericPdf exppoly1("exppoly1", "exppoly1", "TMath::Exp(exppoly1_p1 * mass)", RooArgList(*wk->var("mass"), exppoly1_p1));
+      // Exponential polynominal: degree-2
+      RooRealVar exppoly2_p1("exppoly2_p1", "exppoly2_p1", -4e-06, -1.0, 0.0);
+      RooGenericPdf exppoly2("exppoly2", "exppoly2", "TMath::Exp(exppoly2_p1 * mass * mass)", RooArgList(*wk->var("mass"), exppoly2_p1));
+      // Inverse polynomial: degree-2
+      RooRealVar invpoly2_p1("invpoly2_p1", "invpoly2_p1", 1e19 , 1e6, 1e35);
+      RooGenericPdf invpoly2("invpoly2", "invpoly2", "1 + invpoly2_p1 / (mass * mass)", RooArgList(*wk->var("mass"), invpoly2_p1));
+      // Inverse polynomial: degree-2
+      RooRealVar invpoly3_p1("invpoly3_p1", "invpoly3_p1", 1e15, 1e9, 1e40);
+      RooGenericPdf invpoly3("invpoly3", "invpoly3", "1 + invpoly3_p1 / (mass * mass * mass)", RooArgList(*wk->var("mass"), invpoly3_p1));
 
       // Setup fit functions
       std::vector<RooAbsPdf*> bkg_functions;
-      bkg_functions.push_back(&novosibirsk);
-      bkg_functions.push_back(&modified_gamma);
-      bkg_functions.push_back(&modified_landau);
-      if (mass_category == "high") { bkg_functions.push_back(&exppoly); }
+      if (mass_category == "low") {
+        bkg_functions.push_back(&novosibirsk);
+        bkg_functions.push_back(&modified_gamma);
+        bkg_functions.push_back(&modified_landau);
+      } else if (mass_category == "high") {
+        bkg_functions.push_back(&exppoly1);
+        bkg_functions.push_back(&exppoly2);
+        bkg_functions.push_back(&invpoly2);
+        bkg_functions.push_back(&invpoly3);
+      }
 
       // Number of signal and background events
       RooRealVar nSig("nSig", "number of signal events", 0, -(0.5 * data.sumEntries()), (0.5 * data.sumEntries()));
@@ -129,10 +143,16 @@ int main(int argc, char** argv)
 
       // Construct parameter sets that need to be remembered
       std::vector<ParameterSet> parameter_sets;
-      parameter_sets.push_back(ParameterSet("Novosibirsk", {&novosibirsk_peak, &novosibirsk_width, &novosibirsk_tail, &nSig, &nBkg}));
-      parameter_sets.push_back(ParameterSet("Modified Gamma", {&gamma_alpha0, &gamma_alpha1, &gamma_theta0, &gamma_theta1, &gamma_mu, &nSig, &nBkg}));
-      parameter_sets.push_back(ParameterSet("Modified Landau", {&landau_mean, &landau_sigma0, &landau_sigma1, &nSig, &nBkg}));
-      if (mass_category == "high") { parameter_sets.push_back(ParameterSet("Exponential Polynomial", {&exppoly_p1, &exppoly_p2, &nSig, &nBkg})); }
+      if (mass_category == "low") {
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("novosibirsk"), {&novosibirsk_peak, &novosibirsk_width, &novosibirsk_tail, &nSig, &nBkg}));
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("modified_gamma"), {&gamma_alpha0, &gamma_alpha1, &gamma_theta0, &gamma_theta1, &gamma_mu, &nSig, &nBkg}));
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("modified_landau"), {&landau_mean, &landau_sigma0, &landau_sigma1, &nSig, &nBkg}));
+      } else if (mass_category == "high") {
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("exppoly1"), {&exppoly1_p1, &nSig, &nBkg}));
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("exppoly2"), {&exppoly2_p1, &nSig, &nBkg}));
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("invpoly2"), {&invpoly2_p1, &nSig, &nBkg}));
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("invpoly3"), {&invpoly3_p1, &nSig, &nBkg}));
+      }
 
       // Recreate output ROOT file
       std::string fileSuffix(appendToFile ? "_mX" + args["mX"][0] : "");

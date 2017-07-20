@@ -119,7 +119,7 @@ namespace SpuriousSignal {
     if (bkg_only()) {
       canvas.Print(("plots/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_bkgOnly.pdf").c_str());
     } else {
-      canvas.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + std::to_string(resonance_mass) + ".pdf").c_str());
+      canvas.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/mass_points/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + std::to_string(resonance_mass) + ".pdf").c_str());
     }
     MSG_INFO("Created \033[1m" << m_mass_category << " mass " << m_tag_category << "-tag\033[0m plot for " << (bkg_only() ? "background-only" : "signal-plus-background with mX = " + std::to_string(resonance_mass)));
   }

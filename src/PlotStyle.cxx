@@ -82,13 +82,15 @@ namespace SpuriousSignal {
 
   int PlotStyle::colour(const std::string& fn_name)
   {
-    std::map<std::string, int> _map = {{"novosibirsk", TColor::GetColor("#e7298a")}, {"modified_gamma", TColor::GetColor("#1b9e77")}, {"modified_landau", TColor::GetColor("#7570b3")}, {"exppoly", TColor::GetColor("#d95f02")}};
+    std::map<std::string, int> _map = {{"novosibirsk", TColor::GetColor("#e7298a")}, {"modified_gamma", TColor::GetColor("#1b9e77")}, {"modified_landau", TColor::GetColor("#7570b3")},
+                                       {"exppoly1", TColor::GetColor("#e7298a")}, {"exppoly2", TColor::GetColor("#1b9e77")}, {"invpoly2", TColor::GetColor("#7570b3")}, {"invpoly3", TColor::GetColor("#d95f02")}};
     return _map[fn_name];
   }
 
   std::string PlotStyle::label(const std::string& fn_name)
   {
-    std::map<std::string, std::string> _map = {{"novosibirsk", "Novosibirsk"}, {"modified_gamma", "Modified Gamma"}, {"modified_landau", "Modified Landau"}, {"exppoly", "Exponential polynomial"}};
+    std::map<std::string, std::string> _map = {{"novosibirsk", "Novosibirsk"}, {"modified_gamma", "Modified Gamma"}, {"modified_landau", "Modified Landau"},
+                                               {"exppoly1", "Exponential mass"}, {"exppoly2", "Exponential mass^2"}, {"invpoly2", "Inverse polynomial 1/mass^2"}, {"invpoly3", "Inverse polynomial 1/mass^3"}};
     return _map[fn_name];
   }
 
