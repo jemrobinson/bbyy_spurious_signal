@@ -78,12 +78,13 @@ namespace SpuriousSignal {
     PlotStyle::EnsureAtlasStyle();
     TCanvas canvas("canvas", "canvas", 600, 600);
     m_resonance_mass = resonance_mass;
-    m_fit_graphs.clear();
+    // m_fit_graphs.clear();
     m_chi2.clear();
     m_ndof.clear();
     // Plot data and write to file
     m_data.plotOn(frame);
-    m_fit_graphs["data"] = (TGraph*)frame->getObject(frame->numItems() - 1);
+    // m_fit_graphs["data"] = (TGraph*)frame->getObject(frame->numItems() - 1);
+    TGraph* g_data = dynamic_cast<TGraph*>(frame->getObject(frame->numItems() - 1));
     // Add legend
     TLegend legend(0.4, 0.7, 0.93, 0.93);
     // Plot backgrounds and write to file
@@ -91,27 +92,27 @@ namespace SpuriousSignal {
       if (bkg_only()) {
         // Background
         m_fit_functions.at(idx)->plotOn(frame, RooFit::LineColor(PlotStyle::colour(bkg_name(m_fit_functions.at(idx)))));
-        m_fit_graphs[("bkg_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx)))] = (TGraph*)frame->getObject(frame->numItems() - 1);
+        // m_fit_graphs[("bkg_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx)))] = (TGraph*)frame->getObject(frame->numItems() - 1);
       } else {
         // Restore nSig and nBkg
         dynamic_cast<RooRealVar*>(m_fit_functions.at(idx)->getParameters(m_data)->find("nSig"))->setVal(m_nSig.at(idx));
         dynamic_cast<RooRealVar*>(m_fit_functions.at(idx)->getParameters(m_data)->find("nBkg"))->setVal(m_nBkg.at(idx));
         // Background
         m_fit_functions.at(idx)->plotOn(frame, RooFit::Components(bkg_name(m_fit_functions.at(idx)).c_str()), RooFit::LineColor(PlotStyle::colour(bkg_name(m_fit_functions.at(idx)))), RooFit::LineStyle(kDashed));
-        m_fit_graphs["mX_" + std::to_string(resonance_mass) + "_bkg_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx))] = (TGraph*)frame->getObject(frame->numItems() - 1);
+        // m_fit_graphs["mX_" + std::to_string(resonance_mass) + "_bkg_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx))] = (TGraph*)frame->getObject(frame->numItems() - 1);
         // Signal + background
         m_fit_functions.at(idx)->plotOn(frame, RooFit::LineColor(PlotStyle::colour(bkg_name(m_fit_functions.at(idx)))));
-        m_fit_graphs["mX_" + std::to_string(resonance_mass) + "_splusb_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx))] = (TGraph*)frame->getObject(frame->numItems() - 1);
+        // m_fit_graphs["mX_" + std::to_string(resonance_mass) + "_splusb_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx))] = (TGraph*)frame->getObject(frame->numItems() - 1);
       }
       // Chi^2 of fit to data
-      m_chi2.push_back(frame->chiSquare() * m_fit_graphs["data"]->GetN());
-      m_ndof.push_back(m_fit_graphs["data"]->GetN() - m_fit_functions.at(idx)->getParameters(m_data)->getSize());
+      m_chi2.push_back(frame->chiSquare() * g_data->GetN());
+      m_ndof.push_back(g_data->GetN() - m_fit_functions.at(idx)->getParameters(m_data)->getSize());
       MSG_INFO(std::setw(15) << m_fit_functions.at(idx)->getTitle() << " " << (bkg_only() ? "(bkg-only)" : "(S+B)") << ": chi2 / ndof =  " << m_chi2.back() << " / " << m_ndof.back());
       std::string s_chi2 = std::to_string(m_chi2.back());
       s_chi2 = s_chi2.substr(0, s_chi2.find(".") + 3);
       legend.AddEntry((TGraph*)frame->getObject(frame->numItems() - 1), (PlotStyle::label(bkg_name(m_fit_functions.at(idx))) + ": #chi^{2} / ndof = " + s_chi2 + " / " + std::to_string(m_ndof.back())).c_str(), "L");
     }
-    legend.AddEntry(m_fit_graphs["data"], ("MC bkg: " + m_tag_category + "-tag, " + m_mass_category + " mass").c_str(), "P");
+    legend.AddEntry(g_data, ("MC bkg: " + m_tag_category + "-tag, " + m_mass_category + " mass").c_str(), "P");
     frame->Draw();
     legend.SetBorderSize(0);
     legend.SetFillStyle(0);
@@ -140,16 +141,8 @@ namespace SpuriousSignal {
     return bkg_name;
   }
 
-  void PDFModelFitter::write(const std::string& f_output_ROOT, const std::string& f_output_text) const
+  void PDFModelFitter::write(const std::string& f_output_text) const
   {
-    // Write ROOT output
-    TFile f_ROOT(f_output_ROOT.c_str(), "WRITE");
-
-    for (auto graph_kv : m_fit_graphs) {
-      f_ROOT.WriteObject(graph_kv.second, graph_kv.first.c_str());
-    }
-
-    f_ROOT.Close();
     // Write text output
     std::ofstream f_text;
     f_text.open(f_output_text, std::ios::app);

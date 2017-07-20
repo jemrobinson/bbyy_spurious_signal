@@ -4,6 +4,18 @@
 *.tex
 *.root
 src/*Dict.cxx
+bin/
+obj/
+output/
+plots/
+
+# Scripts
+*.sh
+setup*
+*.log
+
+# VS code
+.vscode
 
 # Prerequisites
 *.d

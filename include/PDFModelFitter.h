@@ -19,14 +19,14 @@ namespace SpuriousSignal {
 
     void fit();
     void plot(RooPlot* frame, const int& resonance_mass);
-    void write(const std::string& f_output_ROOT, const std::string& f_output_text) const;
+    void write(const std::string& f_output_text) const;
 
   private:
     std::string m_mass_category;
     std::string m_tag_category;
     RooDataSet m_data;
     std::vector<RooAbsPdf*> m_fit_functions;
-    std::map<std::string, TGraph*> m_fit_graphs;
+    // std::map<std::string, TGraph*> m_fit_graphs;
     std::vector<double> m_nSig;
     std::vector<double> m_nSigError;
     std::vector<double> m_nSigError_withSumW2;

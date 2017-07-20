@@ -25,16 +25,6 @@ namespace SpuriousSignal {
      */
     static std::string label(const std::string& fn_name);
 
-    // /**
-    //  * Low edge of plot window
-    //  */
-    // static int mass_low(const int& resonance_mass);
-
-    // /**
-    //  * High edge of plot window
-    //  */
-    // static int mass_high(const int& resonance_mass);
-
     /**
      * List of masses in a given category
      */
@@ -43,7 +33,8 @@ namespace SpuriousSignal {
     template <typename T>
     static std::string to_string(const T& input, const int& ndp) {
       std::string s_out = std::to_string(input);
-      return s_out.substr(0, s_out.find(".") + 1 + ndp);
+      int nCharacters(ndp < 1 ? ndp : 1 + ndp);
+      return s_out.substr(0, s_out.find(".") + nCharacters);
     }
 
   };

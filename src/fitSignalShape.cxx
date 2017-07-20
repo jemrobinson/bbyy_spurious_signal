@@ -74,4 +74,5 @@ int main(int /*argc*/, char** /*argv*/)
       model.write(output_file_name);
     }
   }
+  return 0;
 }

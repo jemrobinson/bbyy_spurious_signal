@@ -97,40 +97,11 @@ namespace SpuriousSignal {
   std::vector<int> PlotStyle::resonance_masses(const std::string& mass_category)
   {
     if (mass_category == "low") {
-      // return std::vector<int>({260, 275, 300, 325});
+      // return std::vector<int>({350});
       return std::vector<int>({260, 275, 300, 325, 350, 400});
     } else if (mass_category == "high") {
       return std::vector<int>({400, 450, 500, 750, 1000});
     }
     throw std::invalid_argument("Did not recognise mass category");
   }
-
-  // int PlotStyle::mass_low(const int& resonance_mass) {
-  //   if (resonance_mass == 260) { return 245; }
-  //   if (resonance_mass == 275) { return 250; }
-  //   if (resonance_mass == 300) { return 270; }
-  //   if (resonance_mass == 325) { return 290; }
-  //   if (resonance_mass == 350) { return 310; }
-  //   if (resonance_mass == 400) { return 360; }
-  //   if (resonance_mass == 450) { return 410; }
-  //   if (resonance_mass == 500) { return 450; }
-  //   if (resonance_mass == 750) { return 680; }
-  //   if (resonance_mass == 1000) { return 900; }
-  //   return 245;
-  // }
-
-  // int PlotStyle::mass_high(const int& resonance_mass) {
-  //   if (resonance_mass == 260) { return 290; }
-  //   if (resonance_mass == 275) { return 300; }
-  //   if (resonance_mass == 300) { return 330; }
-  //   if (resonance_mass == 325) { return 360; }
-  //   if (resonance_mass == 350) { return 390; }
-  //   if (resonance_mass == 400) { return 440; }
-  //   if (resonance_mass == 450) { return 490; }
-  //   if (resonance_mass == 500) { return 550; }
-  //   if (resonance_mass == 750) { return 820; }
-  //   if (resonance_mass == 1000) { return 1100; }
-  //   return 1100;
-  // }
-
 }

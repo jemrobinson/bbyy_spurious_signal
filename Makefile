@@ -9,6 +9,7 @@ SOURCE_DIR   := src
 SOURCES := $(shell find $(SOURCE_DIR) -name "[^.]*.cxx")
 FOUR_BODY_MASS_COMPONENTS := fitFourBodyMass ParameterSet PDFModelFitter PlotStyle SignalModel
 SIGNAL_SHAPE_COMPONENTS := fitSignalShape PlotStyle ExpGausExpPDF ExpGausExpPDFDict SignalModel
+SIGNAL_BIAS_COMPONENTS := extractSignalBias PlotStyle SignalModel
 CXX   := g++ -m64 -Wall -Wextra# -Werror
 MKDIR := mkdir -p
 
@@ -18,12 +19,15 @@ LIBS := $(shell root-config --libs) -lRooFit
 
 .PHONY: all clean
 
-all: $(BIN_DIR)/fitFourBodyMass  $(BIN_DIR)/fitSignalShape
+all: $(BIN_DIR)/extractSignalBias $(BIN_DIR)/fitFourBodyMass  $(BIN_DIR)/fitSignalShape
 
 clean:
 	rm -rf $(OBJECT_DIR)/*.o $(BIN_DIR)/* $(SOURCE_DIR)/*PDFDict*
 	@echo $(patsubst %, $(OBJECT_DIR)/%.o, $(FOUR_BODY_MASS_COMPONENTS))
 
+$(BIN_DIR)/extractSignalBias: $(patsubst %, $(OBJECT_DIR)/%.o, $(SIGNAL_BIAS_COMPONENTS))
+	${MKDIR} ${BIN_DIR} ${INPUT_DIR}
+	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 $(BIN_DIR)/fitFourBodyMass: $(patsubst %, $(OBJECT_DIR)/%.o, $(FOUR_BODY_MASS_COMPONENTS))
 	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OUTPUT_DIR} ${PLOT_DIR}

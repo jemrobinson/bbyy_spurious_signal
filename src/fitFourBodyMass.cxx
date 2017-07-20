@@ -19,7 +19,6 @@
 #include "TFile.h"
 
 
-
 std::map<std::string, std::vector<std::string> > process_args(int argc, char** argv)
 {
   // Read in command line arguments
@@ -51,10 +50,17 @@ int main(int argc, char** argv)
   std::map< std::string, std::vector<std::string> > args = process_args(argc, argv);
   std::vector<std::string> mass_categories = args["mass"];
   std::vector<std::string> tag_categories = args["tag"];
+  bool bkgOnly(args.find("bkgOnly") != args.end());
 
   // Disable RooFit and ROOT messages
   RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
   gErrorIgnoreLevel = kBreak;
+
+  // Recreate output file
+  if (bkgOnly) {
+    TFile f_output_ROOT("output/background_model_workspace.root", "RECREATE");
+    f_output_ROOT.Close();
+  }
 
   // Open workspace file
   TFile f_input("output/signal_model_workspace.root", "READ");
@@ -154,13 +160,8 @@ int main(int argc, char** argv)
         parameter_sets.push_back(ParameterSet(PlotStyle::label("invpoly3"), {&invpoly3_p1, &nSig, &nBkg}));
       }
 
-      // Recreate output ROOT file
-      std::string fileSuffix(appendToFile ? "_mX" + args["mX"][0] : "");
-      std::string f_output_ROOT("output/fit_functions_" + mass_category + "Mass_" + tag_category + "tag" + fileSuffix + ".root");
-      TFile f_ROOT(f_output_ROOT.c_str(), (appendToFile ? "WRITE" : "RECREATE"));
-      f_ROOT.Close();
-
       // Recreate output text file
+      std::string fileSuffix(appendToFile ? "_mX" + args["mX"][0] : "");
       std::string f_output_text("output/csv/spurious_signal_" + mass_category + "Mass_" + tag_category + "tag" + fileSuffix + ".csv");
       std::ofstream f_text;
       f_text.open(f_output_text, (appendToFile ? std::ios::app : std::ios::trunc));
@@ -171,38 +172,49 @@ int main(int argc, char** argv)
       PDFModelFitter fits_bkg_only(data, bkg_functions, mass_category, tag_category, true);
       fits_bkg_only.fit();
       fits_bkg_only.plot(wk->var("mass")->frame(), -1);
-      fits_bkg_only.write(f_output_ROOT, f_output_text);
+      fits_bkg_only.write(f_output_text);
 
       // Record values for each set of parameters
       for (auto& parameter_set : parameter_sets) {
         parameter_set.record_values();
       }
 
-      // Load signal model
-      RooAbsPdf* signal_model = wk->pdf("signal_PDF");
+      if (bkgOnly) {
+        // Write background-only fits to output workspace
+        RooWorkspace bkg_wk(("background_model_" + mass_category + "Mass_" + tag_category + "tag").c_str());
+        for (auto bkg_function : bkg_functions) {
+          bkg_wk.import(*bkg_function);
+        }
+        bkg_wk.import(data);
+        MSG_INFO("Preparing to write background workspace to output/background_model_workspace.root");
+        bkg_wk.writeToFile("output/background_model_workspace.root", false);
+      } else {
+        // Load signal model
+        RooAbsPdf* signal_model = wk->pdf("signal_PDF");
 
-      // Do S+B fits for different backgrounds
-      MSG_INFO("Performing signal + background fits for " << bkg_functions.size() << " fit functions.");
+        // Do S+B fits for different backgrounds
+        MSG_INFO("Performing signal + background fits for " << bkg_functions.size() << " fit functions.");
 
-      // Construct S+B PDFs
-      std::vector<RooAbsPdf*> splusb_functions;
-      for (auto bkg_function : bkg_functions) {
-        splusb_functions.push_back(new RooAddPdf("signal_plus_" + bkg_function->getTitle(), "signal + " + bkg_function->getTitle(), RooArgList(*signal_model, *bkg_function), RooArgList(nSig, nBkg)));
-      }
+        // Construct S+B PDFs
+        std::vector<RooAbsPdf*> splusb_functions;
+        for (auto bkg_function : bkg_functions) {
+          splusb_functions.push_back(new RooAddPdf("signal_plus_" + bkg_function->getTitle(), "signal + " + bkg_function->getTitle(), RooArgList(*signal_model, *bkg_function), RooArgList(nSig, nBkg)));
+        }
 
-      PDFModelFitter fits_splusb(data, splusb_functions, mass_category, tag_category, true);
-      for (auto mass_point : mass_points) {
-        MSG_INFO("Fitting mass point \033[1m" << mass_point << "\033[0m GeV.");
+        PDFModelFitter fits_splusb(data, splusb_functions, mass_category, tag_category, true);
+        for (auto mass_point : mass_points) {
+          MSG_INFO("Fitting mass point \033[1m" << mass_point << "\033[0m GeV.");
 
-        // Set mass and restore bkg parameters to best bkg-only fit
-        for (auto& parameter_set : parameter_sets) { parameter_set.restore_values(); }
-        wk->var("mass_resonance")->setVal(mass_point);
-        wk->var("mass_resonance")->setConstant(true);
+          // Set mass and restore bkg parameters to best bkg-only fit
+          for (auto& parameter_set : parameter_sets) { parameter_set.restore_values(); }
+          wk->var("mass_resonance")->setVal(mass_point);
+          wk->var("mass_resonance")->setConstant(true);
 
-        // Fit, plot and output results
-        fits_splusb.fit();
-        fits_splusb.plot(wk->var("mass")->frame(), mass_point);
-        fits_splusb.write(f_output_ROOT, f_output_text);
+          // Fit, plot and output results
+          fits_splusb.fit();
+          fits_splusb.plot(wk->var("mass")->frame(), mass_point);
+          fits_splusb.write(f_output_text);
+        }
       }
     }
   }
