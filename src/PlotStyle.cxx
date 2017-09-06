@@ -97,7 +97,6 @@ namespace SpuriousSignal {
   std::vector<int> PlotStyle::resonance_masses(const std::string& mass_category)
   {
     if (mass_category == "low") {
-      // return std::vector<int>({350});
       return std::vector<int>({260, 275, 300, 325, 350, 400});
     } else if (mass_category == "high") {
       return std::vector<int>({400, 450, 500, 750, 1000});

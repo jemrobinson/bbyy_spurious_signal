@@ -53,7 +53,7 @@ int main(int argc, char** argv)
   bool bkgOnly(args.find("bkgOnly") != args.end());
 
   // Disable RooFit and ROOT messages
-  RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
+  RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
   gErrorIgnoreLevel = kBreak;
 
   // Recreate output file
@@ -85,6 +85,7 @@ int main(int argc, char** argv)
       RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_SM_bkg_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(*wk->var("mass"), weight));
       RooDataSet data("data", "data", RooArgSet(*wk->var("mass"), weight), RooFit::Import(*ptr_raw_data), RooFit::WeightVar(weight));
       MSG_INFO("Loaded " << data.numEntries() << " events for " << tag_category << "-tag category, corresponding to " << data.sumEntries() << " data events");
+
       // Construct vectors of mass points: either full range or specified set
       bool appendToFile(false);
       std::vector<double> mass_points;
@@ -118,16 +119,16 @@ int main(int argc, char** argv)
       RooFormulaVar landau_sigma("landau_sigma", "landau_sigma0 + landau_sigma1 * mass", RooArgList(*wk->var("mass"), landau_sigma0, landau_sigma1));
       RooGenericPdf modified_landau("modified_landau", "modified_landau", "TMath::Landau(mass, landau_mean, landau_sigma)", RooArgList(*wk->var("mass"), landau_mean, landau_sigma));
       // Exponential polynominal: degree-1
-      RooRealVar exppoly1_p1("exppoly1_p1", "exppoly1_p1", -6e-03, -1.0, 0.0);
+      RooRealVar exppoly1_p1("exppoly1_p1", "exppoly1_p1", -0.01, -1.0, 0.0);
       RooGenericPdf exppoly1("exppoly1", "exppoly1", "TMath::Exp(exppoly1_p1 * mass)", RooArgList(*wk->var("mass"), exppoly1_p1));
       // Exponential polynominal: degree-2
-      RooRealVar exppoly2_p1("exppoly2_p1", "exppoly2_p1", -4e-06, -1.0, 0.0);
+      RooRealVar exppoly2_p1("exppoly2_p1", "exppoly2_p1", -1e-5, -1.0, 0.0);
       RooGenericPdf exppoly2("exppoly2", "exppoly2", "TMath::Exp(exppoly2_p1 * mass * mass)", RooArgList(*wk->var("mass"), exppoly2_p1));
       // Inverse polynomial: degree-2
-      RooRealVar invpoly2_p1("invpoly2_p1", "invpoly2_p1", 1e19 , 1e6, 1e35);
+      RooRealVar invpoly2_p1("invpoly2_p1", "invpoly2_p1", 1e3, 1e2, 1e20);
       RooGenericPdf invpoly2("invpoly2", "invpoly2", "1 + invpoly2_p1 / (mass * mass)", RooArgList(*wk->var("mass"), invpoly2_p1));
-      // Inverse polynomial: degree-2
-      RooRealVar invpoly3_p1("invpoly3_p1", "invpoly3_p1", 1e15, 1e9, 1e40);
+      // Inverse polynomial: degree-3
+      RooRealVar invpoly3_p1("invpoly3_p1", "invpoly3_p1", 1e5, 1e4, 1e20);
       RooGenericPdf invpoly3("invpoly3", "invpoly3", "1 + invpoly3_p1 / (mass * mass * mass)", RooArgList(*wk->var("mass"), invpoly3_p1));
 
       // Setup fit functions

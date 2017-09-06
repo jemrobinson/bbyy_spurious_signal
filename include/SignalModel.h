@@ -58,8 +58,6 @@ namespace SpuriousSignal {
      */
     void add_mass_point(const int& resonance_mass);
 
-    void add_parameterisation(const std::string& name);
-
     void append(std::vector<double>& target, std::vector<double> source);
 
     double get_initial_value(const std::string& name);

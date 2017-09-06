@@ -9,10 +9,10 @@
 #include "RooAbsPdf.h"
 #include "RooFitResult.h"
 #include "RooPlot.h"
-// #include "TAxis.h"
 #include "TCanvas.h"
 #include "TFile.h"
 #include "TGraph.h"
+#include "TH1.h"
 #include "TLegend.h"
 
 namespace SpuriousSignal {
@@ -83,7 +83,6 @@ namespace SpuriousSignal {
     m_ndof.clear();
     // Plot data and write to file
     m_data.plotOn(frame);
-    // m_fit_graphs["data"] = (TGraph*)frame->getObject(frame->numItems() - 1);
     TGraph* g_data = dynamic_cast<TGraph*>(frame->getObject(frame->numItems() - 1));
     // Add legend
     TLegend legend(0.4, 0.7, 0.93, 0.93);
@@ -92,17 +91,14 @@ namespace SpuriousSignal {
       if (bkg_only()) {
         // Background
         m_fit_functions.at(idx)->plotOn(frame, RooFit::LineColor(PlotStyle::colour(bkg_name(m_fit_functions.at(idx)))));
-        // m_fit_graphs[("bkg_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx)))] = (TGraph*)frame->getObject(frame->numItems() - 1);
       } else {
         // Restore nSig and nBkg
         dynamic_cast<RooRealVar*>(m_fit_functions.at(idx)->getParameters(m_data)->find("nSig"))->setVal(m_nSig.at(idx));
         dynamic_cast<RooRealVar*>(m_fit_functions.at(idx)->getParameters(m_data)->find("nBkg"))->setVal(m_nBkg.at(idx));
         // Background
         m_fit_functions.at(idx)->plotOn(frame, RooFit::Components(bkg_name(m_fit_functions.at(idx)).c_str()), RooFit::LineColor(PlotStyle::colour(bkg_name(m_fit_functions.at(idx)))), RooFit::LineStyle(kDashed));
-        // m_fit_graphs["mX_" + std::to_string(resonance_mass) + "_bkg_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx))] = (TGraph*)frame->getObject(frame->numItems() - 1);
         // Signal + background
         m_fit_functions.at(idx)->plotOn(frame, RooFit::LineColor(PlotStyle::colour(bkg_name(m_fit_functions.at(idx)))));
-        // m_fit_graphs["mX_" + std::to_string(resonance_mass) + "_splusb_" + m_tag_category + "tag" + bkg_name(m_fit_functions.at(idx))] = (TGraph*)frame->getObject(frame->numItems() - 1);
       }
       // Chi^2 of fit to data
       m_chi2.push_back(frame->chiSquare() * g_data->GetN());
@@ -114,6 +110,7 @@ namespace SpuriousSignal {
     }
     legend.AddEntry(g_data, ("MC bkg: " + m_tag_category + "-tag, " + m_mass_category + " mass").c_str(), "P");
     frame->Draw();
+    dynamic_cast<TH1*>(frame->GetXaxis()->GetParent())->SetMinimum(0.0);
     legend.SetBorderSize(0);
     legend.SetFillStyle(0);
     legend.Draw();

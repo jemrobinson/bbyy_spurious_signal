@@ -33,7 +33,7 @@ namespace SpuriousSignal {
     , m_models({"EGE", "CBGA"})
     , m_model_parameters({{"CBGA", {"CBGA_alpha_CB", "CBGA_f_CB", "CBGA_mu_CB", "CBGA_mu_GA", "CBGA_n_CB", "CBGA_sigma_CB", "CBGA_sigma_GA"}},
                           {"EGE",  {"EGE_mu", "EGE_sigma_k", "EGE_kL", "EGE_kH"}}})
-    , m_model_metaparameters({{"CBGA", {"CBGA_alpha_CB_p0", "CBGA_alpha_CB_p1", "CBGA_f_CB_p0", "CBGA_f_CB_p1", "CBGA_mu_GA_k_p0", "CBGA_n_CB_p0", "CBGA_n_CB_p1", "CBGA_sigma_CB_p0", "CBGA_sigma_CB_p1", "CBGA_sigma_CB_p2", "CBGA_sigma_GA_p0", "CBGA_sigma_GA_p1", "CBGA_sigma_GA_p2"}},
+    , m_model_metaparameters({{"CBGA", {"CBGA_alpha_CB_p0", "CBGA_alpha_CB_p1", "CBGA_f_CB_p0", "CBGA_f_CB_p1", "CBGA_mu_CB_p0", "CBGA_mu_CB_p1", "CBGA_mu_GA_p0", "CBGA_mu_GA_p1", "CBGA_n_CB", "CBGA_sigma_CB_p0", "CBGA_sigma_CB_p1", "CBGA_sigma_CB_p2", "CBGA_sigma_GA_p0", "CBGA_sigma_GA_p1", "CBGA_sigma_GA_p2"}},
                               {"EGE",  {"EGE_mu_p0", "EGE_mu_p1", "EGE_sigma_p0", "EGE_sigma_p1", "EGE_kL_p0", "EGE_kL_p1", "EGE_kL_p2", "EGE_kH_p0", "EGE_kH_p1", "EGE_kH_p2"}}})
   {
     m_wk = new RooWorkspace(("signal_model_" + mass_category + "Mass_" + tag_category + "tag").c_str());
@@ -59,19 +59,21 @@ namespace SpuriousSignal {
     }
     // Simultaneous Crystal Ball + Gaussian
     if (std::find(m_models.begin(), m_models.end(), "CBGA") != m_models.end()) {
-      m_wk->factory("CBGA_alpha_CB_p0[0.8, -100, 100]");
-      m_wk->factory("CBGA_alpha_CB_p1[0.0001, -1, 1]");
-      m_wk->factory("CBGA_f_CB_p0[0.5, -100, 100]");
-      m_wk->factory("CBGA_f_CB_p1[0.0003, -1, 1]");
-      m_wk->factory("CBGA_mu_GA_k_p0[1, 0.995, 1.005]");
-      m_wk->factory("CBGA_n_CB_p0[16, -100, 100]");
-      m_wk->factory("CBGA_n_CB_p1[0.0, -1, 1]");
-      m_wk->factory("CBGA_sigma_CB_p0[1.6, -1000, 1000]");
-      m_wk->factory("CBGA_sigma_CB_p1[0.003, -1, 1]");
-      m_wk->factory("CBGA_sigma_CB_p2[0.00001, -0.001, 0.001]");
-      m_wk->factory("CBGA_sigma_GA_p0[4.3, -1000, 1000]");
-      m_wk->factory("CBGA_sigma_GA_p1[-0.005, -1, 1]");
-      m_wk->factory("CBGA_sigma_GA_p2[0.00005, -0.001, 0.001]");
+      m_wk->factory(("CBGA_alpha_CB_p0[" + std::to_string(get_initial_value("CBGA_alpha_CB_p0")) + ", 0, 10]").c_str());
+      m_wk->factory(("CBGA_alpha_CB_p1[" + std::to_string(get_initial_value("CBGA_alpha_CB_p1")) + ", -0.1, 0.2]").c_str());
+      m_wk->factory(("CBGA_f_CB_p0[" + std::to_string(get_initial_value("CBGA_f_CB_p0")) + ", 0.4, 1.8]").c_str());
+      m_wk->factory(("CBGA_f_CB_p1[" + std::to_string(get_initial_value("CBGA_f_CB_p1")) + ", -0.1, 0.1]").c_str());
+      m_wk->factory(("CBGA_mu_CB_p0[" + std::to_string(get_initial_value("CBGA_mu_CB_p0")) + ", 0, 30]").c_str());
+      m_wk->factory(("CBGA_mu_CB_p1[" + std::to_string(get_initial_value("CBGA_mu_CB_p1")) + ", 0.95, 1.05]").c_str());
+      m_wk->factory(("CBGA_mu_GA_p0[" + std::to_string(get_initial_value("CBGA_mu_GA_p0")) + ", 5, 40]").c_str());
+      m_wk->factory(("CBGA_mu_GA_p1[" + std::to_string(get_initial_value("CBGA_mu_GA_p1")) + ", 0.95, 1.05]").c_str());
+      m_wk->factory(("CBGA_n_CB[" + std::to_string(get_initial_value("CBGA_n_CB")) + ", 5, 200]").c_str());
+      m_wk->factory(("CBGA_sigma_CB_p0[" + std::to_string(get_initial_value("CBGA_sigma_CB_p0")) + ", -70, 0]").c_str());
+      m_wk->factory(("CBGA_sigma_CB_p1[" + std::to_string(get_initial_value("CBGA_sigma_CB_p1")) + ", 0, 1.0]").c_str());
+      m_wk->factory(("CBGA_sigma_CB_p2[" + std::to_string(get_initial_value("CBGA_sigma_CB_p2")) + ", -0.1, 0.1]").c_str());
+      m_wk->factory(("CBGA_sigma_GA_p0[" + std::to_string(get_initial_value("CBGA_sigma_GA_p0")) + ", -300, 0]").c_str());
+      m_wk->factory(("CBGA_sigma_GA_p1[" + std::to_string(get_initial_value("CBGA_sigma_GA_p1")) + ", 0, 2.5]").c_str());
+      m_wk->factory(("CBGA_sigma_GA_p2[" + std::to_string(get_initial_value("CBGA_sigma_GA_p2")) + ", -0.1, 0.2]").c_str());
     }
   }
 
@@ -98,8 +100,6 @@ namespace SpuriousSignal {
     m_wk->factory("CBShape::individual_CBGA_CB(mass, individual_CBGA_mu_CB, individual_CBGA_sigma_CB, individual_CBGA_alpha_CB, individual_CBGA_n_CB)");
     m_wk->factory("Gaussian:individual_CBGA_GA(mass,individual_CBGA_mu_GA, individual_CBGA_sigma_GA)");
     m_wk->factory("SUM::individual_CBGA(individual_CBGA_f_CB * individual_CBGA_CB, individual_CBGA_GA)");
-    // Leo's CB+GA
-    // add_parameterisation("Leo_CBGA");
     // Build a simultaneous ExpGausExp and CB+GA
     m_wk->factory("Simultaneous::simultaneous_EGE(mass_points)");
     m_wk->factory("Simultaneous::simultaneous_CBGA(mass_points)");
@@ -121,26 +121,15 @@ namespace SpuriousSignal {
     }
     // Add Crystal Ball + Gaussian
     if (std::find(m_models.begin(), m_models.end(), "CBGA") != m_models.end()) {
-      m_wk->factory(("expr::CBGA_alpha_CB_Xhh_m" + mX + "('TMath::Min(TMath::Max(CBGA_alpha_CB_p0 + CBGA_alpha_CB_p1 * " + mX + ", 0.0), 5.0)', CBGA_alpha_CB_p0, CBGA_alpha_CB_p1)").c_str());
+      m_wk->factory(("expr::CBGA_alpha_CB_Xhh_m" + mX + "('CBGA_alpha_CB_p0 + CBGA_alpha_CB_p1 * " + mX + "', CBGA_alpha_CB_p0, CBGA_alpha_CB_p1)").c_str());
       m_wk->factory(("expr::CBGA_f_CB_Xhh_m" + mX + "('CBGA_f_CB_p0 + CBGA_f_CB_p1 * " + mX + "', CBGA_f_CB_p0, CBGA_f_CB_p1)").c_str());
-      m_wk->factory(("CBGA_mu_CB_Xhh_m" + mX + "[" + mX + "]").c_str());
-      m_wk->factory(("expr::CBGA_mu_GA_Xhh_m" + mX + "('CBGA_mu_GA_k_p0 * CBGA_mu_CB_Xhh_m" + mX + "', CBGA_mu_GA_k_p0, CBGA_mu_CB_Xhh_m" + mX + ")").c_str());
-      m_wk->factory(("expr::CBGA_n_CB_Xhh_m" + mX + "('CBGA_n_CB_p0 + CBGA_n_CB_p1 * " + mX + "', CBGA_n_CB_p0, CBGA_n_CB_p1)").c_str());
-      m_wk->factory(("expr::CBGA_sigma_CB_Xhh_m" + mX + "('TMath::Min(TMath::Max(CBGA_sigma_CB_p0 + CBGA_sigma_CB_p1 * " + mX + " + CBGA_sigma_CB_p2 * " + mX + " * " + mX + ", 2.0), 20.0)', CBGA_sigma_CB_p0, CBGA_sigma_CB_p1, CBGA_sigma_CB_p2)").c_str());
-      m_wk->factory(("expr::CBGA_sigma_GA_Xhh_m" + mX + "('TMath::Min(TMath::Max(CBGA_sigma_GA_p0 + CBGA_sigma_GA_p1 * " + mX + " + CBGA_sigma_GA_p2 * " + mX + " * " + mX + ", 4.0), 20.0)', CBGA_sigma_GA_p0, CBGA_sigma_GA_p1, CBGA_sigma_GA_p2)").c_str());
-      m_wk->factory(("CBShape::CBGA_CB_Xhh_m" + mX + "(mass, CBGA_mu_CB_Xhh_m" + mX + ", CBGA_sigma_CB_Xhh_m" + mX + ", CBGA_alpha_CB_Xhh_m" + mX + ", CBGA_n_CB_Xhh_m" + mX + ")").c_str());
+      m_wk->factory(("expr::CBGA_mu_CB_Xhh_m" + mX + "('CBGA_mu_CB_p0 + CBGA_mu_CB_p1 * " + mX + "', CBGA_mu_CB_p0, CBGA_mu_CB_p1)").c_str());
+      m_wk->factory(("expr::CBGA_mu_GA_Xhh_m" + mX + "('CBGA_mu_GA_p0 + CBGA_mu_GA_p1 * " + mX + "', CBGA_mu_GA_p0, CBGA_mu_GA_p1)").c_str());
+      m_wk->factory(("expr::CBGA_sigma_CB_Xhh_m" + mX + "('CBGA_sigma_CB_p0 + CBGA_sigma_CB_p1 * " + mX + " + CBGA_sigma_CB_p2 * " + mX + " * " + mX + "', CBGA_sigma_CB_p0, CBGA_sigma_CB_p1, CBGA_sigma_CB_p2)").c_str());
+      m_wk->factory(("expr::CBGA_sigma_GA_Xhh_m" + mX + "('CBGA_sigma_GA_p0 + CBGA_sigma_GA_p1 * " + mX + " + CBGA_sigma_GA_p2 * " + mX + " * " + mX + "', CBGA_sigma_GA_p0, CBGA_sigma_GA_p1, CBGA_sigma_GA_p2)").c_str());
+      m_wk->factory(("CBShape::CBGA_CB_Xhh_m" + mX + "(mass, CBGA_mu_CB_Xhh_m" + mX + ", CBGA_sigma_CB_Xhh_m" + mX + ", CBGA_alpha_CB_Xhh_m" + mX + ", CBGA_n_CB)").c_str());
       m_wk->factory(("Gaussian::CBGA_GA_Xhh_m" + mX + "(mass, CBGA_mu_GA_Xhh_m" + mX + ", CBGA_sigma_GA_Xhh_m" + mX + ")").c_str());
       m_wk->factory(("SUM::CBGA_Xhh_m" + mX + "(CBGA_f_CB_Xhh_m" + mX + " * CBGA_CB_Xhh_m" + mX + ", CBGA_GA_Xhh_m" + mX + ")").c_str());
-      // m_wk->factory(("expr::CBGA_alpha_CB_Xhh_m" + mX + "('CBGA_alpha_CB_p0 + CBGA_alpha_CB_p1 * " + mX + "', CBGA_alpha_CB_p0, CBGA_alpha_CB_p1)").c_str());
-      // m_wk->factory(("expr::CBGA_f_CB_Xhh_m" + mX + "('CBGA_f_CB_p0 + CBGA_f_CB_p1 * " + mX + "', CBGA_f_CB_p0, CBGA_f_CB_p1)").c_str());
-      // m_wk->factory(("expr::CBGA_mu_CB_Xhh_m" + mX + "('CBGA_mu_CB_p0 + CBGA_mu_CB_p1 * " + mX + "', CBGA_mu_CB_p0, CBGA_mu_CB_p1)").c_str());
-      // m_wk->factory(("expr::CBGA_mu_GA_Xhh_m" + mX + "('CBGA_mu_GA_p0 + CBGA_mu_GA_p1 * " + mX + "', CBGA_mu_GA_p0, CBGA_mu_GA_p1)").c_str());
-      // m_wk->factory(("expr::CBGA_n_CB_Xhh_m" + mX + "('CBGA_n_CB_p0 + CBGA_n_CB_p1 * " + mX + "', CBGA_n_CB_p0, CBGA_n_CB_p1)").c_str());
-      // m_wk->factory(("expr::CBGA_sigma_CB_Xhh_m" + mX + "('CBGA_sigma_CB_p0 + CBGA_sigma_CB_p1 * " + mX + "', CBGA_sigma_CB_p0, CBGA_sigma_CB_p1)").c_str());
-      // m_wk->factory(("expr::CBGA_sigma_GA_Xhh_m" + mX + "('CBGA_sigma_GA_p0 + CBGA_sigma_GA_p1 * " + mX + "', CBGA_sigma_GA_p0, CBGA_sigma_GA_p1)").c_str());
-      // m_wk->factory(("CBShape::CBGA_CB_Xhh_m" + mX + "(mass, CBGA_mu_CB_Xhh_m" + mX + ", CBGA_sigma_CB_Xhh_m" + mX + ", CBGA_alpha_CB_Xhh_m" + mX + ", CBGA_n_CB_Xhh_m" + mX + ")").c_str());
-      // m_wk->factory(("Gaussian::CBGA_GA_Xhh_m" + mX + "(mass, CBGA_mu_GA_Xhh_m" + mX + ", CBGA_sigma_GA_Xhh_m" + mX + ")").c_str());
-      // m_wk->factory(("SUM::CBGA_Xhh_m" + mX + "(CBGA_f_CB_Xhh_m" + mX + " * CBGA_CB_Xhh_m" + mX + ", CBGA_GA_Xhh_m" + mX + ")").c_str());
       dynamic_cast<RooSimultaneous*>(m_wk->pdf("simultaneous_CBGA"))->addPdf(*m_wk->pdf(("CBGA_Xhh_m" + mX).c_str()), mX.c_str());
     }
   }
@@ -153,8 +142,7 @@ namespace SpuriousSignal {
   {
     m_data = &data;
     for (const auto& model : m_models) {
-      // if (model == "CBGA") { continue; }
-      MSG_INFO("Fitting simultaneous " << (model == "EGE" ? "ExpGausExp" : model) << " PDF to input events");
+      MSG_INFO("Fitting simultaneous " << (model == "EGE" ? "ExpGausExp" : model == "CBGA" ? "Crystal Ball + Gaussian" : model) << " PDF to input events");
       m_wk->pdf(("simultaneous_" + model).c_str())->fitTo(data, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "minimize"), RooFit::Hesse(false), RooFit::Minos(false), RooFit::PrintLevel(-1));
       m_wk->pdf(("simultaneous_" + model).c_str())->fitTo(data, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "migradimproved"), RooFit::Hesse(true), RooFit::Minos(false), RooFit::PrintLevel(-1));
       // Print the model parameters
@@ -170,7 +158,7 @@ namespace SpuriousSignal {
     for (auto metaparameter : m_model_metaparameters.at("EGE")) {
       m_wk->var(metaparameter.c_str())->setConstant();
     }
-    m_wk->factory("expr::EGE_mu('EGE_mu_p0 + EGE_mu_p1 * mass_resonance', EGE_mu_p0, EGE_mu_p1, mass_resonance)");
+    m_wk->factory("expr::EGE_mu_raw('EGE_mu_p0 + EGE_mu_p1 * mass_resonance', EGE_mu_p0, EGE_mu_p1, mass_resonance)");
     m_wk->factory(("expr::EGE_sigma('TMath::Min(TMath::Max(EGE_sigma_p0 + EGE_sigma_p1 * mass_resonance, " + std::to_string(m_mass_category == "low" ? 3 : 4) + "), " + std::to_string(m_mass_category == "low" ? 12 : 20) + ")', EGE_sigma_p0, EGE_sigma_p1, mass_resonance)").c_str());
     m_wk->factory("expr::EGE_kL('TMath::Min(TMath::Max(EGE_kL_p0 + EGE_kL_p1 * mass_resonance + EGE_kL_p2 / mass_resonance, 0.2), 4.0)', EGE_kL_p0, EGE_kL_p1, EGE_kL_p2, mass_resonance)");
     m_wk->factory("expr::EGE_kH('TMath::Min(TMath::Max(EGE_kH_p0 + EGE_kH_p1 * mass_resonance + EGE_kH_p2 * mass_resonance * mass_resonance, 0.2), 4.0)', EGE_kH_p0, EGE_kH_p1, EGE_kH_p2, mass_resonance)");
@@ -194,12 +182,6 @@ namespace SpuriousSignal {
         m_wk->var("mass_resonance")->setVal(PlotStyle::resonance_masses(m_mass_category).at(idx));
         int colour(PlotStyle::colours().at(idx));
         m_data->plotOn(frame, RooFit::Cut(("mass_points==mass_points::" + mX).c_str()), RooFit::MarkerColor(colour));
-        // if (model == "CBGA") {
-        //   RooDataSet* data_slice = dynamic_cast<RooDataSet*>(m_data->reduce(RooFit::Cut(("mass_points==mass_points::" + mX).c_str())));
-        //   data_slice->plotOn(frame, RooFit::DataError(RooAbsData::SumW2), RooFit::Invisible());
-        //   // m_wk->pdf("Leo_CBGA")->plotOn(frame, RooFit::LineColor(colour));
-        // } else {
-        // }
         m_wk->pdf(("simultaneous_" + model).c_str())->plotOn(frame, RooFit::Slice(*m_wk->cat("mass_points"), mX.c_str()), RooFit::ProjWData(*m_wk->cat("mass_points"), *m_data), RooFit::LineColor(colour));
       }
       frame->Draw();
@@ -230,15 +212,14 @@ namespace SpuriousSignal {
         }
         // Plot data and simultaneous EGE
         m_data->plotOn(frame, RooFit::Cut(("mass_points==mass_points::" + mX).c_str()), RooFit::DataError(RooAbsData::SumW2), RooFit::MarkerColor(kBlack));
+        TGraph* g_data = dynamic_cast<TGraph*>(frame->getObject(frame->numItems() - 1)); int ndof(g_data->GetN());
         m_wk->pdf(("simultaneous_" + model).c_str())->plotOn(frame, RooFit::Slice(*m_wk->cat("mass_points"), mX.c_str()), RooFit::ProjWData(*m_wk->cat("mass_points"), *m_data), RooFit::LineColor(kRed));
-        // if (model == "CBGA") {
-        //   data_slice->plotOn(frame, RooFit::DataError(RooAbsData::SumW2), RooFit::Invisible());
-        //   m_wk->pdf("Leo_CBGA")->plotOn(frame, RooFit::LineColor(kGreen + 3));
-        // }
+        double chiSquared(frame->chiSquare() * ndof); int nFitParams(m_wk->pdf(("simultaneous_" + model).c_str())->getParameters(m_data)->getSize());
         RooHist* pull_hist_parameterised = frame->pullHist(); pull_hist_parameterised->SetLineColor(kRed); pull_hist_parameterised->SetMarkerColor(kRed);
         // Plot individual
         data_slice->plotOn(frame, RooFit::DataError(RooAbsData::SumW2), RooFit::Invisible());
         m_wk->pdf(("individual_" + model).c_str())->plotOn(frame, RooFit::LineColor(kBlue));
+        double individual_chiSquared(frame->chiSquare() * ndof); int individual_nFitParams(m_wk->pdf(("individual_" + model).c_str())->getParameters(m_data)->getSize());
         RooHist* pull_hist_individual = frame->pullHist(); pull_hist_individual->SetLineColor(kBlue); pull_hist_individual->SetMarkerColor(kBlue);
         // Add pulls to ratio frame
         frame_ratio->addPlotable(pull_hist_parameterised, "P");
@@ -258,12 +239,14 @@ namespace SpuriousSignal {
           textBox.DrawLatex(0.19, 0.82, ("#sigma_{EGE} = " + PlotStyle::to_string(m_wk->function("individual_EGE_sigma")->getVal(), 2)).c_str());
           textBox.DrawLatex(0.19, 0.78, ("k_{L,EGE} = " + PlotStyle::to_string(m_wk->var("individual_EGE_kL")->getVal(), 2)).c_str());
           textBox.DrawLatex(0.19, 0.74, ("k_{H,EGE} = " + PlotStyle::to_string(m_wk->var("individual_EGE_kH")->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.19, 0.70, ("#chi^{2} / ndof = " + PlotStyle::to_string(individual_chiSquared, 2) + "/" + PlotStyle::to_string(ndof - individual_nFitParams, 0)).c_str());
           textBox.SetTextColor(kRed);
           textBox.DrawLatex(0.74, 0.90, ("Simultaneous " + model + " fit").c_str());
           textBox.DrawLatex(0.74, 0.86, ("#mu_{EGE} = " + PlotStyle::to_string(m_wk->function(("EGE_mu_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.82, ("#sigma_{EGE} = " + PlotStyle::to_string(m_wk->function(("EGE_sigma_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.78, ("k_{L,EGE} = " + PlotStyle::to_string(m_wk->function(("EGE_kL_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.74, ("k_{H,EGE} = " + PlotStyle::to_string(m_wk->function(("EGE_kH_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.70, ("#chi^{2} / ndof = " + PlotStyle::to_string(chiSquared, 2) + "/" + PlotStyle::to_string(ndof - nFitParams, 0)).c_str());
         } else if (model == "CBGA") {
           textBox.SetTextColor(kBlue);
           textBox.DrawLatex(0.19, 0.90, ("Single " + model + " fit").c_str());
@@ -274,26 +257,17 @@ namespace SpuriousSignal {
           textBox.DrawLatex(0.19, 0.70, ("n_{CB} = " + PlotStyle::to_string(m_wk->var("individual_CBGA_n_CB")->getVal(), 2)).c_str());
           textBox.DrawLatex(0.19, 0.66, ("#sigma_{CB} = " + PlotStyle::to_string(m_wk->var("individual_CBGA_sigma_CB")->getVal(), 2)).c_str());
           textBox.DrawLatex(0.19, 0.62, ("#sigma_{GA} = " + PlotStyle::to_string(m_wk->var("individual_CBGA_sigma_GA")->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.19, 0.58, ("#chi^{2} / ndof = " + PlotStyle::to_string(individual_chiSquared, 2) + "/" + PlotStyle::to_string(ndof - individual_nFitParams, 0)).c_str());
           textBox.SetTextColor(kRed);
           textBox.DrawLatex(0.74, 0.90, ("Simultaneous " + model + " fit").c_str());
           textBox.DrawLatex(0.74, 0.86, ("#alpha_{CB} = " + PlotStyle::to_string(m_wk->function(("CBGA_alpha_CB_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.82, ("f_{CB} = " + PlotStyle::to_string(m_wk->function(("CBGA_f_CB_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.78, ("#mu_{CB} = " + PlotStyle::to_string(m_wk->function(("CBGA_mu_CB_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.74, ("#mu_{GA} = " + PlotStyle::to_string(m_wk->function(("CBGA_mu_GA_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-          textBox.DrawLatex(0.74, 0.70, ("n_{CB} = " + PlotStyle::to_string(m_wk->function(("CBGA_n_CB_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.70, ("n_{CB} = " + PlotStyle::to_string(m_wk->var("CBGA_n_CB")->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.66, ("#sigma_{CB} = " + PlotStyle::to_string(m_wk->function(("CBGA_sigma_CB_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.62, ("#sigma_{GA} = " + PlotStyle::to_string(m_wk->function(("CBGA_sigma_GA_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-          // if (m_tag_category != 0) {
-          //   textBox.SetTextColor(kGreen + 3);
-          //   textBox.DrawLatex(0.74, 0.90, ("Leo's " + model + " fit").c_str());
-          //   textBox.DrawLatex(0.74, 0.86, ("#alpha_{CB} = " + PlotStyle::to_string(m_wk->function("Leo_CBGA_alpha_CB")->getVal(), 2)).c_str());
-          //   textBox.DrawLatex(0.74, 0.82, ("f_{CB} = " + PlotStyle::to_string(m_wk->function("Leo_CBGA_f_CB")->getVal(), 2)).c_str());
-          //   textBox.DrawLatex(0.74, 0.78, ("#mu_{CB} = " + PlotStyle::to_string(m_wk->function("Leo_CBGA_mu_CB")->getVal(), 2)).c_str());
-          //   textBox.DrawLatex(0.74, 0.74, ("#mu_{GA} = " + PlotStyle::to_string(m_wk->function("Leo_CBGA_mu_GA")->getVal(), 2)).c_str());
-          //   textBox.DrawLatex(0.74, 0.70, ("n_{CB} = " + PlotStyle::to_string(m_wk->function("Leo_CBGA_n_CB")->getVal(), 2)).c_str());
-          //   textBox.DrawLatex(0.74, 0.66, ("#sigma_{CB} = " + PlotStyle::to_string(m_wk->function("Leo_CBGA_sigma_CB")->getVal(), 2)).c_str());
-          //   textBox.DrawLatex(0.74, 0.62, ("#sigma_{GA} = " + PlotStyle::to_string(m_wk->function("Leo_CBGA_sigma_GA")->getVal(), 2)).c_str());
-          // }
+          textBox.DrawLatex(0.74, 0.58, ("#chi^{2} / ndof = " + PlotStyle::to_string(chiSquared, 2) + "/" + PlotStyle::to_string(ndof - nFitParams, 0)).c_str());
         }
         TPad pad_bottom("pad_bottom", "pad_bottom", 0.0, 0.0, 1.0, 1.0);
         pad_bottom.SetTopMargin(0.65);
@@ -315,45 +289,6 @@ namespace SpuriousSignal {
 
   void SignalModel::append(std::vector<double>& target, std::vector<double> source) {
     target.insert(target.end(), source.begin(), source.end());
-  }
-
-  void SignalModel::add_parameterisation(const std::string& name)
-  {
-    // Leo's parameterised CB+GA
-    if (name == "Leo_CBGA") {
-      std::vector<double> parameters;
-      if (m_mass_category == "low") {
-        if (m_tag_category == "1") {
-          append(parameters, {95.95, -0.6169, 0.0009952, 0.1473, -0.001951, 4.71, 0.003299, 0.0, 4.801, 0.003105, 0.0, -9.584, 0.06117, -3.98e-05, 248.8, -1.708, 0.003045});
-        } else if (m_tag_category == "2") {
-          append(parameters, {36.15, -0.2098, 0.0003138, 0.1913, -0.001764, 4.717, 0.003271, 0.0, 4.7, 0.003387, 0.0, -9.18, 0.05983, -4.638e-05, -105.7, 0.7039, -0.001057});
-        }
-      } else if (m_mass_category == "high") {
-        if (m_tag_category == "1") {
-          append(parameters, {-4.974, 0.01985, -1.36e-05, -0.5062, 6.076e-05, 21.71, 0.935, 3.826e-05, 64.61, 0.8174, 0.0001511, 10.39, -0.01581, 2.328e-05, -21.5, 0.1165, -5.918e-05});
-        } else if (m_tag_category == "2") {
-          append(parameters, {2.053, -0.003402, 4.28e-06, -0.4215, -0.000229, 4.241, 0.9892, 2.646e-06, 13.43, 0.9817, 1.394e-05, 3.707, 0.002918, 9.237e-06, -3.17, 0.04017, 3.898e-06});
-        }
-      }
-      if (parameters.size() == 0) {
-        append(parameters, {1.0, 0.0, 0.0, 0.5, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0});
-      }
-      m_wk->factory(("expr::Leo_CBGA_alpha_CB('" + std::to_string(parameters.at(0)) + " + " + std::to_string(parameters.at(1)) + " * mass_resonance + " + std::to_string(parameters.at(2)) + " * mass_resonance * mass_resonance', mass_resonance)").c_str());
-      m_wk->factory(("expr::Leo_CBGA_f_CB('TMath::Exp(" + std::to_string(parameters.at(3)) + " + " + std::to_string(parameters.at(4)) + " * mass_resonance)', mass_resonance)").c_str());
-      m_wk->factory("Leo_CBGA_n_CB[10.0]");
-      if (m_mass_category == "low") {
-        m_wk->factory(("expr::Leo_CBGA_mu_CB('TMath::Exp(" + std::to_string(parameters.at(5)) + " + " + std::to_string(parameters.at(6)) + " * mass_resonance)', mass_resonance)").c_str());
-        m_wk->factory(("expr::Leo_CBGA_mu_GA('TMath::Exp(" + std::to_string(parameters.at(8)) + " + " + std::to_string(parameters.at(9)) + " * mass_resonance)', mass_resonance)").c_str());
-      } else {
-        m_wk->factory(("expr::Leo_CBGA_mu_CB('" + std::to_string(parameters.at(5)) + " + " + std::to_string(parameters.at(6)) + " * mass_resonance + " + std::to_string(parameters.at(7)) + " * mass_resonance * mass_resonance', mass_resonance)").c_str());
-        m_wk->factory(("expr::Leo_CBGA_mu_GA('" + std::to_string(parameters.at(8)) + " + " + std::to_string(parameters.at(9)) + " * mass_resonance + " + std::to_string(parameters.at(10)) + " * mass_resonance * mass_resonance', mass_resonance)").c_str());
-      }
-      m_wk->factory(("expr::Leo_CBGA_sigma_CB('" + std::to_string(parameters.at(11)) + " + " + std::to_string(parameters.at(12)) + " * mass_resonance + " + std::to_string(parameters.at(13)) + " * mass_resonance * mass_resonance', mass_resonance)").c_str());
-      m_wk->factory(("expr::Leo_CBGA_sigma_GA('" + std::to_string(parameters.at(14)) + " + " + std::to_string(parameters.at(15)) + " * mass_resonance + " + std::to_string(parameters.at(16)) + " * mass_resonance * mass_resonance', mass_resonance)").c_str());
-      m_wk->factory("CBShape::Leo_CBGA_CB(mass, Leo_CBGA_mu_CB, Leo_CBGA_sigma_CB, Leo_CBGA_alpha_CB, Leo_CBGA_n_CB)");
-      m_wk->factory("Gaussian::Leo_CBGA_GA(mass, Leo_CBGA_mu_GA, Leo_CBGA_sigma_GA)");
-      m_wk->factory("SUM::Leo_CBGA(Leo_CBGA_f_CB * Leo_CBGA_CB, Leo_CBGA_GA)");
-    }
   }
 
   double SignalModel::get_initial_value(const std::string& name) {
@@ -423,6 +358,56 @@ namespace SpuriousSignal {
       if (name == "EGE_kH_p0") { return 0.860939466908; }
       if (name == "EGE_kH_p1") { return -0.000403346158662; }
       if (name == "EGE_kH_p2") { return 2.5412126773e-07; }
+    }
+    // CBGA
+    if (m_tag_category == "0") {
+      if (name == "CBGA_alpha_CB_p0") { return 0.000724086; }
+      if (name == "CBGA_alpha_CB_p1") { return 0.00434892; }
+      if (name == "CBGA_f_CB_p0") { return 0.400164; }
+      if (name == "CBGA_f_CB_p1") { return 0.000639864; }
+      if (name == "CBGA_mu_CB_p0") { return 1.18889; }
+      if (name == "CBGA_mu_CB_p1") { return 0.995387; }
+      if (name == "CBGA_mu_GA_p0") { return 21.5743; }
+      if (name == "CBGA_mu_GA_p1") { return 0.94393; }
+      if (name == "CBGA_n_CB") { return 50; }
+      if (name == "CBGA_sigma_CB_p0") { return -22.0718; }
+      if (name == "CBGA_sigma_CB_p1") { return 0.082453; }
+      if (name == "CBGA_sigma_CB_p2") { return 5.61611e-05; }
+      if (name == "CBGA_sigma_GA_p0") { return -152.392; }
+      if (name == "CBGA_sigma_GA_p1") { return 1.02557; }
+      if (name == "CBGA_sigma_GA_p2") { return -0.00155964; }
+    } else if (m_tag_category == "1") {
+      if (name == "CBGA_alpha_CB_p0") { return 3.123; }
+      if (name == "CBGA_alpha_CB_p1") { return -0.0007643; }
+      if (name == "CBGA_f_CB_p0") { return 0.9375; }
+      if (name == "CBGA_f_CB_p1") { return -0.001607; }
+      if (name == "CBGA_mu_CB_p0") { return 12.16; }
+      if (name == "CBGA_mu_CB_p1") { return 0.9265; }
+      if (name == "CBGA_mu_GA_p0") { return 27.04; }
+      if (name == "CBGA_mu_GA_p1") { return 0.8281; }
+      if (name == "CBGA_n_CB") { return  10; }
+      if (name == "CBGA_sigma_CB_p0") { return -11.68; }
+      if (name == "CBGA_sigma_CB_p1") { return 0.07075; }
+      if (name == "CBGA_sigma_CB_p2") { return -0.00005255; }
+      if (name == "CBGA_sigma_GA_p0") { return -172.8; }
+      if (name == "CBGA_sigma_GA_p1") { return 1.105; }
+      if (name == "CBGA_sigma_GA_p2") { return -0.001554; }
+    } else if (m_tag_category == "2") {
+      if (name == "CBGA_alpha_CB_p0") { return 3.6; }
+      if (name == "CBGA_alpha_CB_p1") { return -0.002293; }
+      if (name == "CBGA_f_CB_p0") { return 1.137; }
+      if (name == "CBGA_f_CB_p1") { return -0.001675; }
+      if (name == "CBGA_mu_CB_p0") { return 3.155; }
+      if (name == "CBGA_mu_CB_p1") { return 0.984; }
+      if (name == "CBGA_mu_GA_p0") { return 20.56; }
+      if (name == "CBGA_mu_GA_p1") { return 0.8691; }
+      if (name == "CBGA_n_CB") { return  10; }
+      if (name == "CBGA_sigma_CB_p0") { return -47.54; }
+      if (name == "CBGA_sigma_CB_p1") { return 0.3151; }
+      if (name == "CBGA_sigma_CB_p2") { return -0.0004661; }
+      if (name == "CBGA_sigma_GA_p0") { return -83.45; }
+      if (name == "CBGA_sigma_GA_p1") { return 0.5328; }
+      if (name == "CBGA_sigma_GA_p2") { return -0.0007261; }
     }
     MSG_WARNING("Failed to retrieve initial value of '" << name << "' for " << m_mass_category << " mass, " << m_tag_category << "-tag");
     return 0.0;

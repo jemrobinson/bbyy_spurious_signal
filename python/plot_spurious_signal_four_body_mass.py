@@ -3,19 +3,40 @@ import csv
 import math
 import numpy as np
 import os
-# from recursive_rebin import recursive_rebin
 from collections import defaultdict, OrderedDict
 from mATLASplotlib import canvases
+from itertools import izip_longest
 
-colours = {"novosibirsk": "#e7298a", "modified_gamma": "#1b9e77", "modified_landau": "#7570b3", "exppoly": "#d95f02"}
+
+colours = {"novosibirsk": "#e7298a", "modified_gamma": "#1b9e77", "modified_landau": "#7570b3",
+           "exppoly1": "#e7298a", "exppoly2": "#1b9e77", "invpoly2": "#7570b3", "invpoly3": "#d95f02"}
 base_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 resonance_range = {"low": (260, 400), "high": (400, 1000)}
+
+def rebin(x, y, y_err, rebin):
+    def grouper(iterable, n, fillvalue=None):
+        args = [iter(iterable)] * n
+        return izip_longest(*args, fillvalue=fillvalue)
+    _x, _y, _y_err = [], [], []
+    if len(x) % rebin != 0:
+        print "Rebinning {} points by factor {} will leave ungrouped points!".format(len(x), rebin)
+    for group in grouper(zip(x, y, y_err), rebin):
+        try:
+            group = [x for x in group if x is not None]
+            _reciprocal_sqrd_err = sum([1.0/ (elem[2]**2) for elem in group])
+            _x.append(sum([elem[0] for elem in group]) / len(group))
+            _y.append(sum([elem[1] / (elem[2]**2) for elem in group]) / _reciprocal_sqrd_err)
+            _y_err.append(1.0 / np.sqrt(_reciprocal_sqrd_err))
+        except:
+            print group
+            raise
+    return _x, _y, _y_err
 
 for mass_category in ["high", "low"]:
     if mass_category == "low":
         functions = ["novosibirsk", "modified_gamma", "modified_landau"]
     else:
-        functions = ["novosibirsk", "modified_gamma", "modified_landau", "exppoly"]
+        functions = ["exppoly1", "exppoly2", "invpoly2", "invpoly3"]
 
     for tag_category in ["0", "1", "2"]:
         # Check that input file exists
@@ -39,9 +60,9 @@ for mass_category in ["high", "low"]:
                     print row
                     raise
                 if resonance_range[mass_category][0] <= mass <= resonance_range[mass_category][1]:
-                    n_spurious[function].append((mass, n_sig))
-                    if not np.isinf(Z):
-                        Z_spurious[function].append((mass, Z, min(Z_uncertainty, 10)))
+                    n_spurious[function].append((mass, n_sig, n_sig * Z_uncertainty / Z))
+                    if not np.isinf(Z) and Z_uncertainty != 0:
+                        Z_spurious[function].append((mass, Z, Z_uncertainty))
                     mass_points.append(int(mass))
                 else:
                     chi_squared[function] = (chi2, ndof)
@@ -61,7 +82,7 @@ for mass_category in ["high", "low"]:
         # Plot n_spurious
         canvas = canvases.Simple()
         for function in functions:
-            x, y = zip(*n_spurious[function])
+            x, y, y_err = zip(*n_spurious[function])
             canvas.plot_dataset((x, y), style="line join centres", label=function.replace("_", " ").title() + ": $N_{{spur}}^{{max}}$ = {:.2f} ".format(max([abs(_y) for _y in y])), colour=colours[function])
         canvas.set_axis_label("x", "$m_{\gamma\gamma jj}$")
         canvas.set_axis_label("y", "$N_{spurious}$")
@@ -69,7 +90,7 @@ for mass_category in ["high", "low"]:
         canvas.add_ATLAS_label(0.05, 0.96, plot_type="Simulation Internal", anchor_to="upper left")
         canvas.add_luminosity_label(0.05, 0.90, sqrts_TeV=13, luminosity=36.1, units="fb-1", anchor_to="upper left")
         canvas.add_text(0.05, 0.85, "{}-tag {} mass".format(tag_category, mass_category), anchor_to="upper left")
-        canvas.add_legend(0.97, 0.9, fontsize="medium", anchor_to="upper right")
+        canvas.add_legend(0.97, 0.85, fontsize="medium", anchor_to="upper right")
         canvas.internal_header_fraction = 0.3
         canvas.save_to_file(os.path.join(base_path, "plots", "n_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
 
@@ -78,7 +99,7 @@ for mass_category in ["high", "low"]:
         y_min, y_max = -0.3, 0.3
         for function in functions:
             x, y, y_err = zip(*Z_spurious[function])
-            # recursive_rebin(Z_spurious[function])
+            x, y, y_err = rebin(x, y, y_err, 5)
             canvas.plot_dataset((x, None, y, y_err), style="binned band", colour=colours[function], alpha=0.2)
             canvas.plot_dataset((x, y), style="line join centres", label=function.replace("_", " ").title(), colour=colours[function])
             y_restricted = [_y for _y in y if -1.0 < float(_y) < 1.0]
@@ -93,7 +114,7 @@ for mass_category in ["high", "low"]:
         canvas.add_luminosity_label(0.05, 0.90, sqrts_TeV=13, luminosity=36.1, units="fb-1", anchor_to="upper left")
         canvas.add_text(0.05, 0.85, "{}-tag {} mass".format(tag_category, mass_category), anchor_to="upper left")
         canvas.internal_header_fraction = 0.3
-        canvas.add_legend(0.97, 0.9, fontsize="medium", anchor_to="upper right")
+        canvas.add_legend(0.97, 0.85, fontsize="medium", anchor_to="upper right")
         canvas.save_to_file(os.path.join(base_path, "plots", "Z_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
 
         if not os.path.exists("tex"):
@@ -110,9 +131,21 @@ for mass_category in ["high", "low"]:
             f_output.write("\\hline\n")
             f_output.write("\\textbf{Model}             & \\textbf{Z\_spur {[}\%{]}} & \\textbf{N\_spur} & \\textbf{nPars} & \\textbf{$\chi^2$/ndof}\\\\\n")
             f_output.write("\\hline\n")
-            f_output.write("\\textbf{{Novosibirsk}}     & {:.2f}                     & {:.2f}            & 3              & {} / {}                 \\\\\n".format(100*max(x[1] for x in Z_spurious["novosibirsk"]), max(x[1] for x in n_spurious["novosibirsk"]), chi_squared["novosibirsk"][0], chi_squared["novosibirsk"][1]))
-            f_output.write("\\textbf{{Modified Gamma}}  & {:.2f}                     & {:.2f}            & 5              & {} / {}                 \\\\\n".format(100*max(x[1] for x in Z_spurious["modified_gamma"]), max(x[1] for x in n_spurious["modified_gamma"]), chi_squared["modified_gamma"][0], chi_squared["modified_gamma"][1]))
-            f_output.write("\\textbf{{Modified Landau}} & {:.2f}                     & {:.2f}            & 3              & {} / {}                 \\\\\n".format(100*max(x[1] for x in Z_spurious["modified_landau"]), max(x[1] for x in n_spurious["modified_landau"]), chi_squared["modified_landau"][0], chi_squared["modified_landau"][1]))
+            if "novosibirsk" in functions:
+                f_output.write("\\textbf{{Novosibirsk}}     & {:.2f}                     & {:.2f}            & 3              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["novosibirsk"]), max(abs(x[1]) for x in n_spurious["novosibirsk"]), chi_squared["novosibirsk"][0], chi_squared["novosibirsk"][1]))
+            if "modified_gamma" in functions:
+                f_output.write("\\textbf{{Modified Gamma}}  & {:.2f}                     & {:.2f}            & 5              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["modified_gamma"]), max(abs(x[1]) for x in n_spurious["modified_gamma"]), chi_squared["modified_gamma"][0], chi_squared["modified_gamma"][1]))
+            if "modified_landau" in functions:
+                f_output.write("\\textbf{{Modified Landau}} & {:.2f}                     & {:.2f}            & 3              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["modified_landau"]), max(abs(x[1]) for x in n_spurious["modified_landau"]), chi_squared["modified_landau"][0], chi_squared["modified_landau"][1]))
+                # print "n_spurious", n_spurious["modified_landau"]
+            if "exppoly1" in functions:
+                f_output.write("\\textbf{{Exppoly1}}        & {:.2f}                     & {:.2f}            & 1              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["exppoly1"]), max(abs(x[1]) for x in n_spurious["exppoly1"]), chi_squared["exppoly1"][0], chi_squared["exppoly1"][1]))
+            if "exppoly2" in functions:
+                f_output.write("\\textbf{{Exppoly2}}        & {:.2f}                     & {:.2f}            & 1              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["exppoly2"]), max(abs(x[1]) for x in n_spurious["exppoly2"]), chi_squared["exppoly2"][0], chi_squared["exppoly2"][1]))
+            if "invpoly2" in functions:
+                f_output.write("\\textbf{{Invpoly2}}        & {:.2f}                     & {:.2f}            & 1              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["invpoly2"]), max(abs(x[1]) for x in n_spurious["invpoly2"]), chi_squared["invpoly2"][0], chi_squared["invpoly2"][1]))
+            if "invpoly3" in functions:
+                f_output.write("\\textbf{{Invpoly3}}        & {:.2f}                     & {:.2f}            & 1              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["invpoly3"]), max(abs(x[1]) for x in n_spurious["invpoly3"]), chi_squared["invpoly3"][0], chi_squared["invpoly3"][1]))
             f_output.write("\\hline\n")
             f_output.write("\\end{tabular}\n")
             f_output.write("\\end{center}\n")
