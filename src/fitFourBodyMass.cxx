@@ -83,8 +83,11 @@ int main(int argc, char** argv)
 
       // Get the data
       RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_SM_bkg_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(*wk->var("mass"), weight));
-      RooDataSet data("data", "data", RooArgSet(*wk->var("mass"), weight), RooFit::Import(*ptr_raw_data), RooFit::WeightVar(weight));
+      RooDataSet data("data", "data", RooArgSet(*wk->var("mass"), weight), RooFit::Import(*ptr_raw_data), RooFit::WeightVar(weight), RooFit::Cut((std::to_string(mass_range.first) + " < mass && mass < " + std::to_string(mass_range.second)).c_str()));
       MSG_INFO("Loaded " << data.numEntries() << " events for " << tag_category << "-tag category, corresponding to " << data.sumEntries() << " data events");
+
+      // Number of bins
+      int nBins = (tag_category == "2" ? 15 : tag_category == "1" ? 25 : 40);
 
       // Construct vectors of mass points: either full range or specified set
       bool appendToFile(false);
@@ -172,7 +175,7 @@ int main(int argc, char** argv)
       MSG_INFO("Performing background-only fits for " << bkg_functions.size() << " fit functions.");
       PDFModelFitter fits_bkg_only(data, bkg_functions, mass_category, tag_category, true);
       fits_bkg_only.fit();
-      fits_bkg_only.plot(wk->var("mass")->frame(), -1);
+      fits_bkg_only.plot(wk->var("mass")->frame(RooFit::Bins(nBins)), -1);
       fits_bkg_only.write(f_output_text);
 
       // Record values for each set of parameters
@@ -213,7 +216,7 @@ int main(int argc, char** argv)
 
           // Fit, plot and output results
           fits_splusb.fit();
-          fits_splusb.plot(wk->var("mass")->frame(), mass_point);
+          fits_splusb.plot(wk->var("mass")->frame(RooFit::Bins(nBins)), mass_point);
           fits_splusb.write(f_output_text);
         }
       }

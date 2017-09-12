@@ -90,7 +90,7 @@ namespace SpuriousSignal {
   std::string PlotStyle::label(const std::string& fn_name)
   {
     std::map<std::string, std::string> _map = {{"novosibirsk", "Novosibirsk"}, {"modified_gamma", "Modified Gamma"}, {"modified_landau", "Modified Landau"},
-                                               {"exppoly1", "Exponential mass"}, {"exppoly2", "Exponential mass^2"}, {"invpoly2", "Inverse polynomial 1/mass^2"}, {"invpoly3", "Inverse polynomial 1/mass^3"}};
+                                               {"exppoly1", "Exponential O(1)"}, {"exppoly2", "Exponential O(2)"}, {"invpoly2", "Inverse polynomial O(2)"}, {"invpoly3", "Inverse polynomial O(3)"}};
     return _map[fn_name];
   }
 

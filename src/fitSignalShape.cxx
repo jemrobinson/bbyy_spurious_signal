@@ -24,8 +24,6 @@ int main(int /*argc*/, char** /*argv*/)
   gErrorIgnoreLevel = kBreak;
 
   // Construct mass and tag categories
-  // std::vector<std::string> mass_categories({"low"});
-  // std::vector<std::string> tag_categories({"1"});
   std::vector<std::string> mass_categories({"low", "high"});
   std::vector<std::string> tag_categories({"0", "1", "2"});
 

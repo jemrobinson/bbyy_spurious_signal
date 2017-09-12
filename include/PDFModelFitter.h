@@ -33,7 +33,8 @@ namespace SpuriousSignal {
     std::vector<double> m_nBkg;
     std::vector<double> m_chi2;
     std::vector<int> m_ndof;
-    int m_resonance_mass;
+    std::vector<int> m_nFitParams;
+    double m_resonance_mass;
     bool m_verbose;
 
     bool bkg_only() const;

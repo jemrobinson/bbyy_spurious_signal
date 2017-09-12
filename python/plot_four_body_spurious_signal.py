@@ -5,32 +5,14 @@ import numpy as np
 import os
 from collections import defaultdict, OrderedDict
 from mATLASplotlib import canvases
-from itertools import izip_longest
 
 
 colours = {"novosibirsk": "#e7298a", "modified_gamma": "#1b9e77", "modified_landau": "#7570b3",
            "exppoly1": "#e7298a", "exppoly2": "#1b9e77", "invpoly2": "#7570b3", "invpoly3": "#d95f02"}
 base_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
 resonance_range = {"low": (260, 400), "high": (400, 1000)}
-
-def rebin(x, y, y_err, rebin):
-    def grouper(iterable, n, fillvalue=None):
-        args = [iter(iterable)] * n
-        return izip_longest(*args, fillvalue=fillvalue)
-    _x, _y, _y_err = [], [], []
-    if len(x) % rebin != 0:
-        print "Rebinning {} points by factor {} will leave ungrouped points!".format(len(x), rebin)
-    for group in grouper(zip(x, y, y_err), rebin):
-        try:
-            group = [x for x in group if x is not None]
-            _reciprocal_sqrd_err = sum([1.0/ (elem[2]**2) for elem in group])
-            _x.append(sum([elem[0] for elem in group]) / len(group))
-            _y.append(sum([elem[1] / (elem[2]**2) for elem in group]) / _reciprocal_sqrd_err)
-            _y_err.append(1.0 / np.sqrt(_reciprocal_sqrd_err))
-        except:
-            print group
-            raise
-    return _x, _y, _y_err
+RATIO_UNCERTAINTY = 10
+SPIKE_CUT_OFF = 0.2
 
 for mass_category in ["high", "low"]:
     if mass_category == "low":
@@ -60,12 +42,28 @@ for mass_category in ["high", "low"]:
                     print row
                     raise
                 if resonance_range[mass_category][0] <= mass <= resonance_range[mass_category][1]:
-                    n_spurious[function].append((mass, n_sig, n_sig * Z_uncertainty / Z))
-                    if not np.isinf(Z) and Z_uncertainty != 0:
-                        Z_spurious[function].append((mass, Z, Z_uncertainty))
+                    if not np.isinf(Z) and not np.isinf(Z_uncertainty):
+                        if Z_uncertainty == 0.0: Z_uncertainty = 0.5 * Z
+                        n_spurious[function].append([mass, n_sig, 0.0])
+                        Z_spurious[function].append([mass, Z, Z_uncertainty])
+                    else:
+                        print "Rejecting", function, "at", mass, "GeV because fit did not converge"
                     mass_points.append(int(mass))
                 else:
                     chi_squared[function] = (chi2, ndof)
+
+        # Remove points where Z is more than SPIKE_CUT_OFF away from the points around it
+        for function in functions:
+            Z_values = [abs(point[1]) for point in Z_spurious[function]]
+            pathological_filter = [abs((Z_value - 0.5 * (low + high))) < SPIKE_CUT_OFF for low, Z_value, high in zip(Z_values[0:1] + Z_values[:-1], Z_values, Z_values[1:] + Z_values[-2:-1])]
+            Z_spurious[function] = [_elem for _elem, _filter in zip(Z_spurious[function], pathological_filter) if _filter]
+            n_spurious[function] = [_elem for _elem, _filter in zip(n_spurious[function], pathological_filter) if _filter]
+
+        # Cap Z uncertainties at +/- 5 to avoid matplotlib issue
+        for function in functions:
+            for idx_point in range(len(Z_spurious[function])):
+                Z_spurious[function][idx_point][2] = min(Z_spurious[function][idx_point][2], 5.0)
+
         # Sort by mass
         [tup.sort(key=lambda x:x[0]) for tup in n_spurious.values()]
         [tup.sort(key=lambda x:x[0]) for tup in Z_spurious.values()]
@@ -99,10 +97,9 @@ for mass_category in ["high", "low"]:
         y_min, y_max = -0.3, 0.3
         for function in functions:
             x, y, y_err = zip(*Z_spurious[function])
-            x, y, y_err = rebin(x, y, y_err, 5)
             canvas.plot_dataset((x, None, y, y_err), style="binned band", colour=colours[function], alpha=0.2)
             canvas.plot_dataset((x, y), style="line join centres", label=function.replace("_", " ").title(), colour=colours[function])
-            y_restricted = [_y for _y in y if -1.0 < float(_y) < 1.0]
+            y_restricted = [_y for _y in y if -1.5 < float(_y) < 1.0]
             y_min, y_max = min(y_min, min(y_restricted)), max(y_max, max(y_restricted))
         canvas.plot_dataset(([x_min, x_max], [0.2, 0.2]), style="line join centres", colour="red", linestyle="dashed")
         canvas.plot_dataset(([x_min, x_max], [-0.2, -0.2]), style="line join centres", colour="red", linestyle="dashed")
@@ -124,12 +121,12 @@ for mass_category in ["high", "low"]:
             f_output.write("\\begin{center}\n")
             f_output.write("\\caption{{Performance of different functions that are considered for the background modeling of the {} b-tag category ({} mass selection).\n".format(tag_category, mass_category))
             f_output.write("The associated systematic uncertainty on the signal amplitude in terms of spurious signal $N_{{spur}}$ and its ratio to the statistical uncertainty on the fitted number of signal events, $Z_{{spur}}$ computed using the background estimate described in Section~\ref{sec:background}.\n")
-            f_output.write("The chi2/ndof are obtained from performing a background-only fit is also shown.\n")
+            f_output.write("The $\chi^2$/ndof obtained from performing a background-only fit is also shown.\n")
             f_output.write("The functions used are defined above and the number of free parameters for each function is given by nPars.}\n")
             f_output.write("\\label{{spurious-myyjj-{}tag-{}}}\n".format(tag_category, mass_category))
             f_output.write("\\begin{tabular}{|c|c|c|c|c|c|}\n")
             f_output.write("\\hline\n")
-            f_output.write("\\textbf{Model}             & \\textbf{Z\_spur {[}\%{]}} & \\textbf{N\_spur} & \\textbf{nPars} & \\textbf{$\chi^2$/ndof}\\\\\n")
+            f_output.write("\\textbf{Model}             & \\textbf{max(Z\_spur) {[}\%{]}} & \\textbf{max(N\_spur)} & \\textbf{nPars} & \\textbf{$\chi^2$/ndof}\\\\\n")
             f_output.write("\\hline\n")
             if "novosibirsk" in functions:
                 f_output.write("\\textbf{{Novosibirsk}}     & {:.2f}                     & {:.2f}            & 3              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["novosibirsk"]), max(abs(x[1]) for x in n_spurious["novosibirsk"]), chi_squared["novosibirsk"][0], chi_squared["novosibirsk"][1]))
@@ -137,7 +134,6 @@ for mass_category in ["high", "low"]:
                 f_output.write("\\textbf{{Modified Gamma}}  & {:.2f}                     & {:.2f}            & 5              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["modified_gamma"]), max(abs(x[1]) for x in n_spurious["modified_gamma"]), chi_squared["modified_gamma"][0], chi_squared["modified_gamma"][1]))
             if "modified_landau" in functions:
                 f_output.write("\\textbf{{Modified Landau}} & {:.2f}                     & {:.2f}            & 3              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["modified_landau"]), max(abs(x[1]) for x in n_spurious["modified_landau"]), chi_squared["modified_landau"][0], chi_squared["modified_landau"][1]))
-                # print "n_spurious", n_spurious["modified_landau"]
             if "exppoly1" in functions:
                 f_output.write("\\textbf{{Exppoly1}}        & {:.2f}                     & {:.2f}            & 1              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["exppoly1"]), max(abs(x[1]) for x in n_spurious["exppoly1"]), chi_squared["exppoly1"][0], chi_squared["exppoly1"][1]))
             if "exppoly2" in functions:
