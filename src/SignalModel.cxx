@@ -158,7 +158,7 @@ namespace SpuriousSignal {
     for (auto metaparameter : m_model_metaparameters.at("EGE")) {
       m_wk->var(metaparameter.c_str())->setConstant();
     }
-    m_wk->factory("expr::EGE_mu_raw('EGE_mu_p0 + EGE_mu_p1 * mass_resonance', EGE_mu_p0, EGE_mu_p1, mass_resonance)");
+    m_wk->factory("expr::EGE_mu('EGE_mu_p0 + EGE_mu_p1 * mass_resonance', EGE_mu_p0, EGE_mu_p1, mass_resonance)");
     m_wk->factory(("expr::EGE_sigma('TMath::Min(TMath::Max(EGE_sigma_p0 + EGE_sigma_p1 * mass_resonance, " + std::to_string(m_mass_category == "low" ? 3 : 4) + "), " + std::to_string(m_mass_category == "low" ? 12 : 20) + ")', EGE_sigma_p0, EGE_sigma_p1, mass_resonance)").c_str());
     m_wk->factory("expr::EGE_kL('TMath::Min(TMath::Max(EGE_kL_p0 + EGE_kL_p1 * mass_resonance + EGE_kL_p2 / mass_resonance, 0.2), 4.0)', EGE_kL_p0, EGE_kL_p1, EGE_kL_p2, mass_resonance)");
     m_wk->factory("expr::EGE_kH('TMath::Min(TMath::Max(EGE_kH_p0 + EGE_kH_p1 * mass_resonance + EGE_kH_p2 * mass_resonance * mass_resonance, 0.2), 4.0)', EGE_kH_p0, EGE_kH_p1, EGE_kH_p2, mass_resonance)");

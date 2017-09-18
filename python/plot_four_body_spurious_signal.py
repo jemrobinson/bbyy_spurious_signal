@@ -37,7 +37,7 @@ for mass_category in ["high", "low"]:
             for row in csv.reader(f_input, delimiter=" "):
                 try:
                     function, mass, n_sig, Z, Z_uncertainty, chi2, ndof = row
-                    mass, n_sig, Z, Z_uncertainty, chi2, ndof = int(mass), float(n_sig), float(Z), float(Z_uncertainty), float(chi2), int(ndof)
+                    mass, n_sig, Z, Z_uncertainty, chi2, ndof = float(mass), float(n_sig), float(Z), float(Z_uncertainty), float(chi2), int(ndof)
                 except ValueError:
                     print row
                     raise
@@ -48,7 +48,7 @@ for mass_category in ["high", "low"]:
                         Z_spurious[function].append([mass, Z, Z_uncertainty])
                     else:
                         print "Rejecting", function, "at", mass, "GeV because fit did not converge"
-                    mass_points.append(int(mass))
+                    mass_points.append(float(mass))
                 else:
                     chi_squared[function] = (chi2, ndof)
 
@@ -129,19 +129,19 @@ for mass_category in ["high", "low"]:
             f_output.write("\\textbf{Model}             & \\textbf{max(Z\_spur) {[}\%{]}} & \\textbf{max(N\_spur)} & \\textbf{nPars} & \\textbf{$\chi^2$/ndof}\\\\\n")
             f_output.write("\\hline\n")
             if "novosibirsk" in functions:
-                f_output.write("\\textbf{{Novosibirsk}}     & {:.2f}                     & {:.2f}            & 3              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["novosibirsk"]), max(abs(x[1]) for x in n_spurious["novosibirsk"]), chi_squared["novosibirsk"][0], chi_squared["novosibirsk"][1]))
+                f_output.write("\\textbf{{Novosibirsk}}     & {:.2f}                     & {:.2f}            & 3              & {:.1f} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["novosibirsk"]), max(abs(x[1]) for x in n_spurious["novosibirsk"]), chi_squared["novosibirsk"][0], chi_squared["novosibirsk"][1]))
             if "modified_gamma" in functions:
-                f_output.write("\\textbf{{Modified Gamma}}  & {:.2f}                     & {:.2f}            & 5              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["modified_gamma"]), max(abs(x[1]) for x in n_spurious["modified_gamma"]), chi_squared["modified_gamma"][0], chi_squared["modified_gamma"][1]))
+                f_output.write("\\textbf{{Modified Gamma}}  & {:.2f}                     & {:.2f}            & 5              & {:.1f} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["modified_gamma"]), max(abs(x[1]) for x in n_spurious["modified_gamma"]), chi_squared["modified_gamma"][0], chi_squared["modified_gamma"][1]))
             if "modified_landau" in functions:
-                f_output.write("\\textbf{{Modified Landau}} & {:.2f}                     & {:.2f}            & 3              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["modified_landau"]), max(abs(x[1]) for x in n_spurious["modified_landau"]), chi_squared["modified_landau"][0], chi_squared["modified_landau"][1]))
+                f_output.write("\\textbf{{Modified Landau}} & {:.2f}                     & {:.2f}            & 3              & {:.1f} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["modified_landau"]), max(abs(x[1]) for x in n_spurious["modified_landau"]), chi_squared["modified_landau"][0], chi_squared["modified_landau"][1]))
             if "exppoly1" in functions:
-                f_output.write("\\textbf{{Exppoly1}}        & {:.2f}                     & {:.2f}            & 1              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["exppoly1"]), max(abs(x[1]) for x in n_spurious["exppoly1"]), chi_squared["exppoly1"][0], chi_squared["exppoly1"][1]))
+                f_output.write("\\textbf{{Exppoly1}}        & {:.2f}                     & {:.2f}            & 1              & {:.1f} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["exppoly1"]), max(abs(x[1]) for x in n_spurious["exppoly1"]), chi_squared["exppoly1"][0], chi_squared["exppoly1"][1]))
             if "exppoly2" in functions:
-                f_output.write("\\textbf{{Exppoly2}}        & {:.2f}                     & {:.2f}            & 1              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["exppoly2"]), max(abs(x[1]) for x in n_spurious["exppoly2"]), chi_squared["exppoly2"][0], chi_squared["exppoly2"][1]))
+                f_output.write("\\textbf{{Exppoly2}}        & {:.2f}                     & {:.2f}            & 1              & {:.1f} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["exppoly2"]), max(abs(x[1]) for x in n_spurious["exppoly2"]), chi_squared["exppoly2"][0], chi_squared["exppoly2"][1]))
             if "invpoly2" in functions:
-                f_output.write("\\textbf{{Invpoly2}}        & {:.2f}                     & {:.2f}            & 1              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["invpoly2"]), max(abs(x[1]) for x in n_spurious["invpoly2"]), chi_squared["invpoly2"][0], chi_squared["invpoly2"][1]))
+                f_output.write("\\textbf{{Invpoly2}}        & {:.2f}                     & {:.2f}            & 1              & {:.1f} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["invpoly2"]), max(abs(x[1]) for x in n_spurious["invpoly2"]), chi_squared["invpoly2"][0], chi_squared["invpoly2"][1]))
             if "invpoly3" in functions:
-                f_output.write("\\textbf{{Invpoly3}}        & {:.2f}                     & {:.2f}            & 1              & {} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["invpoly3"]), max(abs(x[1]) for x in n_spurious["invpoly3"]), chi_squared["invpoly3"][0], chi_squared["invpoly3"][1]))
+                f_output.write("\\textbf{{Invpoly3}}        & {:.2f}                     & {:.2f}            & 1              & {:.1f} / {}                 \\\\\n".format(100 * max(abs(x[1]) for x in Z_spurious["invpoly3"]), max(abs(x[1]) for x in n_spurious["invpoly3"]), chi_squared["invpoly3"][0], chi_squared["invpoly3"][1]))
             f_output.write("\\hline\n")
             f_output.write("\\end{tabular}\n")
             f_output.write("\\end{center}\n")

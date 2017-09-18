@@ -14,6 +14,9 @@ plots/
 setup*
 *.log
 
+# ROOT workspaces
+.wscode*
+
 # VS code
 .vscode
 

@@ -3,7 +3,7 @@
 #include "PlotStyle.h"
 #include "SignalModel.h"
 // STL
-// #include <algorithm>
+#include <algorithm>
 #include <fstream>
 #include <cmath>
 #include <string>
@@ -33,13 +33,12 @@ int main(int /*argc*/, char** /*argv*/)
   RooRandom::randomGenerator()->SetSeed(20170720);
 
   // Define signal injection points
-  // std::vector<double> injected_signals_pb = {5, 1, 0.5, 0.1};
   std::vector<int> masses = {260, 275, 300, 325, 350, 400, 450, 500, 750, 1000};
   std::map< std::string, std::vector<double> > injected_signals = {{"ATLAS_Run_1_combination", {1.7, 1.7, 1.6, 1.6, 1.5, 0.8, 0.7, 0.6, 0.35, 0.01}},
                                                                    {"ATLAS_Run_2_bbyy", {7, 7, 6.1, 5.6, 5.1, 4.1, 4, 4, 4, 4}},
                                                                    {"ATLAS_Run_2_bbbb", {99, 99, 99, 99, 99, 1.48, 0.89, 0.73, 0.16, 0.11}},
                                                                    {"CMS_Run_2_bbyy", {1.23, 1.40, 1.04, 0.60, 0.80, 0.42, 0.48, 0.23, 0.10, 0.31}},
-                                                                   {"Expected_bbyy", {1.15, 1.05, 1.0, 0.8, 0.7, 0.5, 0.5, 0.35, 0.2, 0.1}}};
+                                                                   {"Expected_bbyy", {1.15, 1.0, 0.9, 0.8, 0.7, 0.55, 0.5, 0.38, 0.18, 0.13}}};
 
   // Construct mass and tag categories
   std::vector<std::string> mass_categories({"low", "high"});

@@ -18,7 +18,7 @@ namespace SpuriousSignal {
     PDFModelFitter(RooDataSet& data, std::vector<RooAbsPdf*> fit_functions, const std::string& mass_category, const std::string& tag_category, const bool& verbose = false);
 
     void fit();
-    void plot(RooPlot* frame, const int& resonance_mass);
+    void plot(RooPlot* frame, const double& resonance_mass);
     void write(const std::string& f_output_text) const;
 
   private:

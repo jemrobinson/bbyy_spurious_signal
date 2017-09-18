@@ -5,6 +5,7 @@
 #include "PlotStyle.h"
 #include "SignalModel.h"
 // STL
+#include <algorithm>
 #include <fstream>
 #include <string>
 #include <utility>
@@ -93,7 +94,7 @@ int main(int argc, char** argv)
       bool appendToFile(false);
       std::vector<double> mass_points;
       if (args.find("mX") != args.end()) {
-        for (auto mass_point : args["mX"]) { mass_points.push_back(std::stoi(mass_point)); }
+        for (auto mass_point : args["mX"]) { mass_points.push_back(std::stod(mass_point)); }
         appendToFile = true;
       } else {
         int mass_point(mass_range.first - MASS_STEP);
@@ -198,6 +199,7 @@ int main(int argc, char** argv)
 
         // Do S+B fits for different backgrounds
         MSG_INFO("Performing signal + background fits for " << bkg_functions.size() << " fit functions.");
+        wk->Print("all");
 
         // Construct S+B PDFs
         std::vector<RooAbsPdf*> splusb_functions;

@@ -77,7 +77,7 @@ namespace SpuriousSignal {
     }
   }
 
-  void PDFModelFitter::plot(RooPlot* frame, const int& resonance_mass)
+  void PDFModelFitter::plot(RooPlot* frame, const double& resonance_mass)
   {
     PlotStyle::EnsureAtlasStyle();
     TCanvas canvas("canvas", "canvas", 600, 600);
@@ -109,8 +109,6 @@ namespace SpuriousSignal {
       int nFreeParameters = (bkg_only() ? m_nFitParams.at(idx) : m_nFitParams.at(idx) - 1); // nBkg and nSig are not independent
       m_ndof.push_back(g_data->GetN() - nFreeParameters);
       MSG_INFO(std::setw(15) << m_fit_functions.at(idx)->getTitle() << " " << (bkg_only() ? "(bkg-only)" : "(S+B)") << ": chi2 / ndof =  " << m_chi2.back() << " / " << m_ndof.back());
-      // std::string s_chi2 = std::to_string(m_chi2.back());
-      // s_chi2 = s_chi2.substr(0, s_chi2.find(".") + 3);
       legend.AddEntry((TGraph*)frame->getObject(frame->numItems() - 1), (PlotStyle::label(bkg_name(m_fit_functions.at(idx))) + ": #chi^{2} / ndof = " + PlotStyle::to_string(m_chi2.back(), 2) + " / " + std::to_string(m_ndof.back())).c_str(), "L");
     }
     legend.AddEntry(g_data, ("MC bkg: " + m_tag_category + "-tag, " + m_mass_category + " mass").c_str(), "P");
@@ -122,9 +120,9 @@ namespace SpuriousSignal {
     if (bkg_only()) {
       canvas.Print(("plots/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_bkgOnly.pdf").c_str());
     } else {
-      canvas.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/mass_points/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + std::to_string(resonance_mass) + ".pdf").c_str());
+      canvas.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/mass_points/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + PlotStyle::to_string(resonance_mass, 1) + ".pdf").c_str());
     }
-    MSG_INFO("Created \033[1m" << m_mass_category << " mass " << m_tag_category << "-tag\033[0m plot for " << (bkg_only() ? "background-only" : "signal-plus-background with mX = " + std::to_string(resonance_mass)));
+    MSG_INFO("Created \033[1m" << m_mass_category << " mass " << m_tag_category << "-tag\033[0m plot for " << (bkg_only() ? "background-only" : "signal-plus-background with mX = " + PlotStyle::to_string(resonance_mass, 1)));
   }
 
   bool PDFModelFitter::bkg_only() const
@@ -135,11 +133,9 @@ namespace SpuriousSignal {
   std::string PDFModelFitter::bkg_name(RooAbsPdf* fit_function) const
   {
     std::string bkg_name(fit_function->getTitle());
-
     if (!this->bkg_only()) {
       bkg_name.erase(bkg_name.find("signal + "), sizeof("signal + ") - 1);
     }
-
     return bkg_name;
   }
 
@@ -153,7 +149,7 @@ namespace SpuriousSignal {
       double nSig(m_nSig.size() == 0 ? 0 : m_nSig.at(idx));
       double Z(m_nSig.size() == 0 ? 0 : nSig / m_nSigError.at(idx));
       double Z_uncertainty(m_nSig.size() == 0 ? 0 : m_nSigError_withSumW2.at(idx) / m_nSigError.at(idx));
-      f_text << bkg_name(m_fit_functions.at(idx)) << " " << m_resonance_mass << " " << nSig << " " << Z << " " << Z_uncertainty << " " << m_chi2.at(idx) << " " << m_ndof.at(idx) << std::endl;
+      f_text << bkg_name(m_fit_functions.at(idx)) << " " << PlotStyle::to_string(m_resonance_mass, 1) << " " << nSig << " " << Z << " " << Z_uncertainty << " " << m_chi2.at(idx) << " " << m_ndof.at(idx) << std::endl;
     }
 
     f_text.close();
