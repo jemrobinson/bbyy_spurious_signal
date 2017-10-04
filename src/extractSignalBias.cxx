@@ -9,18 +9,16 @@
 #include <string>
 #include <utility>
 #include <vector>
-// // ROOT and RooFit/RooStats
-#include "RooMsgService.h"
-#include "RooWorkspace.h"
-#include "RooRandom.h"
-#include "TFile.h"
-
+// ROOT and RooFit/RooStats
 #include "RooDataHist.h"
-
-#include "TCanvas.h"
-#include "TLegend.h"
+#include "RooMsgService.h"
 #include "RooPlot.h"
+#include "RooRandom.h"
+#include "RooWorkspace.h"
+#include "TCanvas.h"
+#include "TFile.h"
 #include "TLatex.h"
+#include "TLegend.h"
 
 int main(int /*argc*/, char** /*argv*/)
 {
@@ -39,8 +37,10 @@ int main(int /*argc*/, char** /*argv*/)
                                                                    {"ATLAS_Run_2_bbbb", {99, 99, 99, 99, 99, 1.48, 0.89, 0.73, 0.16, 0.11}},
                                                                    {"CMS_Run_2_bbyy", {1.23, 1.40, 1.04, 0.60, 0.80, 0.42, 0.48, 0.23, 0.10, 0.31}},
                                                                    {"Expected_bbyy", {1.15, 1.0, 0.9, 0.8, 0.7, 0.55, 0.5, 0.38, 0.18, 0.13}}};
+  std::map< std::string, std::vector<std::string> > bkg_model_parameters = {{"novosibirsk", {"novosibirsk_width", "novosibirsk_peak", "novosibirsk_tail"}},
+                                                                            {"exppoly1", {"exppoly1_p1"}}};
 
-  // Construct mass and tag categories
+                                                                          // Construct mass and tag categories
   std::vector<std::string> mass_categories({"low", "high"});
   std::vector<std::string> tag_categories({"1", "2"});
 
@@ -72,9 +72,13 @@ int main(int /*argc*/, char** /*argv*/)
       f_signal.GetObject(("signal_model_" + mass_category + "Mass_" + tag_category + "tag").c_str(), wk_sig);
       if (!wk_sig) { MSG_ERROR("Could not open signal workspace!"); }
 
+      // wk_bkg->Print("v");
+      // wk_bkg->pdf(fitfn_name.c_str())->Print("v");
+      // std::cout << fitfn_name << std::endl;
+
       // Load background PDF
       RooDataSet* bkg_dataset = dynamic_cast<RooDataSet*>(wk_bkg->data("data"));
-      MSG_INFO("Loaded background dataset with " << bkg_dataset->sumEntries() << " entries, corresponding to " << bkg_dataset->sumEntries() << " events");
+      MSG_INFO("Loaded background dataset with " << bkg_dataset->numEntries() << " entries, corresponding to " << bkg_dataset->sumEntries() << " events");
       wk_bkg->factory(("ExtendPdf::bkg_model(" + fitfn_name + ", norm[" + std::to_string(bkg_dataset->sumEntries()) + "])").c_str());
       RooDataHist* asimov_bkg = wk_bkg->pdf("bkg_model")->generateBinned(*wk_bkg->var("mass"), RooFit::ExpectedData());
 
@@ -110,15 +114,22 @@ int main(int /*argc*/, char** /*argv*/)
 
           // Construct combined PDF
           RooRealVar nSig("nSig", "number of signal events", nInjectedEvents, 0, 5 * combined_dataset.sumEntries());
-          RooRealVar nBkg("nBkg", "number of background events", combined_dataset.sumEntries(), 0.5 * combined_dataset.sumEntries(), 1.5 * combined_dataset.sumEntries());
+          RooRealVar nBkg("nBkg", "number of background events", bkg_dataset->sumEntries(), 0.5 * bkg_dataset->sumEntries(), 1.5 * bkg_dataset->sumEntries());
           RooAddPdf combined_PDF(("signal_plus_" + fitfn_name).c_str(), ("signal_plus_" + fitfn_name).c_str(), RooArgList(*signal_model, *wk_bkg->pdf(fitfn_name.c_str())), RooArgList(nSig, nBkg));
+
+          // Force the background parameters to be constant
+          MSG_INFO("  ... setting " << bkg_model_parameters[fitfn_name].size() << " background model parameters as constant.");
+          for (auto parameter : bkg_model_parameters[fitfn_name]) {
+            wk_bkg->var(parameter.c_str())->setConstant();
+          }
+          // std::cout << "nBkg initial: " << nBkg.getVal() << " vs. " << bkg_dataset->sumEntries() << std::endl;
 
           // Fit S+B PDF to combined data
           combined_PDF.fitTo(combined_dataset, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "minimize"), RooFit::Hesse(false), RooFit::Minos(false), RooFit::PrintLevel(-1));
           combined_PDF.fitTo(combined_dataset, RooFit::SumW2Error(false), RooFit::Minimizer("Minuit2", "migradimproved"), RooFit::Hesse(false), RooFit::Minos(true), RooFit::PrintLevel(-1));
 
-          double fractional_error(nSig.getError() / nSig.getVal());
-          MSG_INFO(mX << " " << kv.first << " " << nInjectedEvents << " " << nSig.getVal() << " +/- " << nSig.getError() << " => " << fractional_error);
+          // std::cout << "nBkg final: " << nBkg.getVal() << " vs. " << bkg_dataset->sumEntries() << std::endl;
+          // std::cout << "nSig final: " << nSig.getVal() << " vs. " << nInjectedEvents << std::endl;
 
           // Plot output
           PlotStyle::EnsureAtlasStyle();
@@ -132,7 +143,7 @@ int main(int /*argc*/, char** /*argv*/)
           TCanvas canvas("canvas", "canvas", 600, 600);
           frame->Draw();
           TLatex textBox; textBox.SetNDC(); textBox.SetTextFont(42);
-          textBox.DrawLatex(0.5, 0.74, (mX + " GeV signal: " + PlotStyle::to_string(injected_signal_pb, 0) + " pb (hh)").c_str());
+          textBox.DrawLatex(0.5, 0.74, (mX + " GeV signal: " + PlotStyle::to_string(injected_signal_pb, 1) + " pb (hh)").c_str());
           legend.SetBorderSize(0);
           legend.SetFillStyle(0);
           legend.Draw();
@@ -144,57 +155,6 @@ int main(int /*argc*/, char** /*argv*/)
           f_output << mass_category << " " << tag_category << " " << mX << " " << kv.first << " " << nInjectedEvents << " " << nSig.getVal() << " " << nSig.getError() << std::endl;
           f_output.close();
         }
-
-        // for (auto injected_signal_pb : injected_signals_pb) {
-        //   // Construct formula to calculate (fake) weight for events
-        //   RooFormulaVar weight_function("scaled_weight", "scaled_weight", ("weight * " + std::to_string(injected_signal_pb) + " / 5.0").c_str(), weight);
-        //   RooDataSet signal_dataset_clone(*ptr_signal_data);
-        //   RooRealVar* scaled_weight = dynamic_cast<RooRealVar*>(signal_dataset_clone.addColumn(weight_function));
-        //   RooDataSet signal_dataset("data", "data", RooArgSet(*wk_bkg->var("mass"), *scaled_weight), RooFit::Import(signal_dataset_clone), RooFit::WeightVar(*scaled_weight), RooFit::Cut(("0.9 * " + mX + " < mass && mass < 1.1 * " + mX).c_str()));
-        //   double nInjectedEvents(signal_dataset.sumEntries());
-        //   MSG_INFO("  ... injecting " << injected_signal_pb << " pb signal => corresponding to " << nInjectedEvents << " events");
-
-        //   // Combine Asimov background with signal
-        //   RooDataHist combined_dataset(*asimov_bkg);
-        //   combined_dataset.add(signal_dataset);
-
-        //   // Construct combined PDF
-        //   RooRealVar nSig("nSig", "number of signal events", nInjectedEvents, 0, 5 * combined_dataset.sumEntries());
-        //   RooRealVar nBkg("nBkg", "number of background events", combined_dataset.sumEntries(), 0.5 * combined_dataset.sumEntries(), 1.5 * combined_dataset.sumEntries());
-        //   RooAddPdf combined_PDF(("signal_plus_" + fitfn_name).c_str(), ("signal_plus_" + fitfn_name).c_str(), RooArgList(*signal_model, *wk_bkg->pdf(fitfn_name.c_str())), RooArgList(nSig, nBkg));
-
-        //   // Fit S+B PDF to combined data
-        //   combined_PDF.fitTo(combined_dataset, RooFit::SumW2Error(true), RooFit::Minimizer("Minuit2", "minimize"), RooFit::Hesse(false), RooFit::Minos(false), RooFit::PrintLevel(-1));
-        //   combined_PDF.fitTo(combined_dataset, RooFit::SumW2Error(false), RooFit::Minimizer("Minuit2", "migradimproved"), RooFit::Hesse(false), RooFit::Minos(true), RooFit::PrintLevel(-1));
-
-        //   double fractional_error(nSig.getError() / nSig.getVal());
-        //   MSG_INFO(mX << " " << injected_signal_pb << " " << nInjectedEvents << " " << nSig.getVal() << " +/- " << nSig.getError() << " => " << fractional_error);
-
-        //   // Plot output
-        //   if (injected_signal_pb == 1) {
-        //     PlotStyle::EnsureAtlasStyle();
-        //     RooPlot* frame = wk_bkg->var("mass")->frame();
-        //     TLegend legend(0.5, 0.8, 0.93, 0.93);
-        //     combined_dataset.plotOn(frame);
-        //     legend.AddEntry((TGraph*)frame->getObject(frame->numItems() - 1), "Asimov bkg + injected signal", "P");
-        //     combined_PDF.plotOn(frame);
-        //     legend.AddEntry((TGraph*)frame->getObject(frame->numItems() - 1), ("S+B (" + PlotStyle::label(fitfn_name) + ") fit").c_str(), "L");
-        //     TCanvas canvas("canvas", "canvas", 600, 600);
-        //     frame->Draw();
-        //     TLatex textBox; textBox.SetNDC(); textBox.SetTextFont(42);
-        //     textBox.DrawLatex(0.5, 0.74, (mX + " GeV signal: " + PlotStyle::to_string(injected_signal_pb, 0) + " pb (hh)").c_str());
-        //     legend.SetBorderSize(0);
-        //     legend.SetFillStyle(0);
-        //     legend.Draw();
-        //     canvas.Print(("plots/" + mass_category + "Mass_" + tag_category + "tag/signal_bias_" + mass_category + "Mass_" + tag_category + "tag_mX_" + mX + "_" + PlotStyle::to_string(injected_signal_pb, 0) + "pb.pdf").c_str());
-        //   }
-
-        //   // Write text output
-        //   std::ofstream f_output;
-        //   f_output.open(f_output_text, std::ios::app);
-        //   f_output << mass_category << " " << tag_category << " " << mX << " " << injected_signal_pb << " " << nInjectedEvents << " " << nSig.getVal() << " " << nSig.getError() << std::endl;
-        //   f_output.close();
-        // }
       }
     }
   }
