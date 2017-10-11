@@ -118,9 +118,9 @@ namespace SpuriousSignal {
     legend.SetFillStyle(0);
     legend.Draw();
     if (bkg_only()) {
-      canvas.Print(("plots/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_bkgOnly.pdf").c_str());
+      canvas.Print(("plots/background_model/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_bkgOnly.pdf").c_str());
     } else {
-      canvas.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/mass_points/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + PlotStyle::to_string(resonance_mass, 1) + ".pdf").c_str());
+      canvas.Print(("plots/signal_plus_background_fits/" + m_mass_category + "Mass_" + m_tag_category + "tag/m_yyjj_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + PlotStyle::to_string(resonance_mass, 1) + ".pdf").c_str());
     }
     MSG_INFO("Created \033[1m" << m_mass_category << " mass " << m_tag_category << "-tag\033[0m plot for " << (bkg_only() ? "background-only" : "signal-plus-background with mX = " + PlotStyle::to_string(resonance_mass, 1)));
   }

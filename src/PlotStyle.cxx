@@ -75,9 +75,10 @@ namespace SpuriousSignal {
 
   std::vector<int> PlotStyle::colours()
   {
-    // Five qualitative colours
-    return std::vector<int>({TColor::GetColor("#1b9e77"), TColor::GetColor("#d95f02"), TColor::GetColor("#7570b3"), TColor::GetColor("#e7298a"), TColor::GetColor("#66a61e"), TColor::GetColor("#e6ab02")});
-    // return std::vector<int>({TColor::GetColor("#C00026"), TColor::GetColor("#A00026"), TColor::GetColor("#800026"), TColor::GetColor("#bd0026"), TColor::GetColor("#e31a1c"), TColor::GetColor("#fc4e2a"), TColor::GetColor("#fd8d3c"), TColor::GetColor("#feb24c"), TColor::GetColor("#fed976"), TColor::GetColor("#ffeda0")});
+    // Six qualitative colours
+    // return std::vector<int>({TColor::GetColor("#1b9e77"), TColor::GetColor("#d95f02"), TColor::GetColor("#7570b3"), TColor::GetColor("#e7298a"), TColor::GetColor("#66a61e"), TColor::GetColor("#e6ab02")});
+    // Ten qualitative colours
+    return std::vector<int>({TColor::GetColor("#C00026"), TColor::GetColor("#A00026"), TColor::GetColor("#800026"), TColor::GetColor("#bd0026"), TColor::GetColor("#e31a1c"), TColor::GetColor("#fc4e2a"), TColor::GetColor("#fd8d3c"), TColor::GetColor("#feb24c"), TColor::GetColor("#fed976"), TColor::GetColor("#ffeda0")});
   }
 
   int PlotStyle::colour(const std::string& fn_name)
@@ -94,13 +95,22 @@ namespace SpuriousSignal {
     return _map[fn_name];
   }
 
+  std::pair<int, int> PlotStyle::mass_range(const std::string& mass_category) {
+    if (mass_category == "low") {
+      return std::make_pair<int, int>(245, 610);
+    } else if (mass_category == "high") {
+      return std::make_pair<int, int>(335, 1140);
+    }
+    throw std::invalid_argument("Did not recognise mass category '" + mass_category + "'");
+  }
+
   std::vector<int> PlotStyle::resonance_masses(const std::string& mass_category)
   {
     if (mass_category == "low") {
-      return std::vector<int>({260, 275, 300, 325, 350, 400});
+      return std::vector<int>({260, 275, 300, 325, 350, 400, 450, 500});
     } else if (mass_category == "high") {
       return std::vector<int>({400, 450, 500, 750, 1000});
     }
-    throw std::invalid_argument("Did not recognise mass category");
+    throw std::invalid_argument("Did not recognise mass category '" + mass_category + "'");
   }
 }

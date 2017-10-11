@@ -1,16 +1,22 @@
 #! /usr/bin/env python
+from collections import defaultdict, OrderedDict
+from mATLASplotlib import canvases
 import csv
+import logging
 import math
 import numpy as np
 import os
-from collections import defaultdict, OrderedDict
-from mATLASplotlib import canvases
 
+# Set up logging
+[logging.root.removeHandler(handler) for handler in logging.root.handlers[:]]
+logging.basicConfig(format="\033[1m%(name)-25s\033[0m %(levelname)-8s %(message)s", level=logging.INFO)
+logger = logging.getLogger("Spurious signal")
 
+# Set up logging
 colours = {"novosibirsk": "#e7298a", "modified_gamma": "#1b9e77", "modified_landau": "#7570b3",
            "exppoly1": "#e7298a", "exppoly2": "#1b9e77", "invpoly2": "#7570b3", "invpoly3": "#d95f02"}
 base_path = os.path.realpath(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir))
-resonance_range = {"low": (260, 400), "high": (400, 1000)}
+resonance_range = {"low": (260, 500), "high": (400, 1000)}
 RATIO_UNCERTAINTY = 10
 SPIKE_CUT_OFF = 0.2
 
@@ -21,10 +27,12 @@ for mass_category in ["high", "low"]:
         functions = ["exppoly1", "exppoly2", "invpoly2", "invpoly3"]
 
     for tag_category in ["0", "1", "2"]:
+        logger.info("* Now considering \033[1m{} mass, {}-tag\033[0m events *".format(mass_category, tag_category))
+
         # Check that input file exists
         input_path = os.path.join(base_path, "output", "csv", "spurious_signal_{}Mass_{}tag.csv".format(mass_category, tag_category))
         if not os.path.exists(input_path):
-            print "{} does not exist".format(input_path)
+            logger.warning("{} does not exist".format(input_path))
             continue
 
         n_spurious = defaultdict(list)
@@ -33,13 +41,15 @@ for mass_category in ["high", "low"]:
         mass_points = []
 
         # Read inputs from csv
+        nRejected, nTotal = 0, 0
         with open(input_path, "rb") as f_input:
             for row in csv.reader(f_input, delimiter=" "):
+                nTotal += 1
                 try:
                     function, mass, n_sig, Z, Z_uncertainty, chi2, ndof = row
                     mass, n_sig, Z, Z_uncertainty, chi2, ndof = float(mass), float(n_sig), float(Z), float(Z_uncertainty), float(chi2), int(ndof)
                 except ValueError:
-                    print row
+                    logger.warning(row)
                     raise
                 if resonance_range[mass_category][0] <= mass <= resonance_range[mass_category][1]:
                     if not np.isinf(Z) and not np.isinf(Z_uncertainty):
@@ -47,10 +57,12 @@ for mass_category in ["high", "low"]:
                         n_spurious[function].append([mass, n_sig, 0.0])
                         Z_spurious[function].append([mass, Z, Z_uncertainty])
                     else:
-                        print "Rejecting", function, "at", mass, "GeV because fit did not converge"
+                        logger.debug("Rejecting {} at {} GeV because fit did not converge".format(function, mass))
+                        nRejected += 1
                     mass_points.append(float(mass))
                 else:
                     chi_squared[function] = (chi2, ndof)
+        logger.info("Rejected {}/{} data points [{}%] because fit did not converge".format(nRejected, nTotal, ((100 * nRejected) / nTotal) if nTotal > 0 else 0))
 
         # Remove points where Z is more than SPIKE_CUT_OFF away from the points around it
         for function in functions:
@@ -74,14 +86,14 @@ for mass_category in ["high", "low"]:
         x_min, x_max = min(mass_points), max(mass_points)
 
         # Ensure that output directory exists
-        if not os.path.exists(os.path.join(base_path, "output", "plots")):
-            os.makedirs(os.path.join(base_path, "output", "plots"))
+        if not os.path.exists(os.path.join(base_path, "plots", "spurious_signal")):
+            os.makedirs(os.path.join(base_path, "plots", "spurious_signal"))
 
         # Plot n_spurious
         canvas = canvases.Simple()
         for function in functions:
             x, y, y_err = zip(*n_spurious[function])
-            canvas.plot_dataset((x, y), style="line join centres", label=function.replace("_", " ").title() + ": $N_{{spur}}^{{max}}$ = {:.2f} ".format(max([abs(_y) for _y in y])), colour=colours[function])
+            canvas.plot_dataset(x, y, style="line join centres", label=function.replace("_", " ").title() + ": $N_{{spur}}^{{max}}$ = {:.2f} ".format(max([abs(_y) for _y in y])), colour=colours[function])
         canvas.set_axis_label("x", "$m_{\gamma\gamma jj}$")
         canvas.set_axis_label("y", "$N_{spurious}$")
         canvas.set_axis_range("x", (x_min, x_max))
@@ -90,19 +102,19 @@ for mass_category in ["high", "low"]:
         canvas.add_text(0.05, 0.85, "{}-tag {} mass".format(tag_category, mass_category), anchor_to="upper left")
         canvas.add_legend(0.97, 0.85, fontsize="medium", anchor_to="upper right")
         canvas.internal_header_fraction = 0.3
-        canvas.save_to_file(os.path.join(base_path, "plots", "n_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
+        canvas.save_to_file(os.path.join(base_path, "plots", "spurious_signal", "n_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
 
         # Plot Z_spurious
         canvas = canvases.Simple()
         y_min, y_max = -0.3, 0.3
         for function in functions:
             x, y, y_err = zip(*Z_spurious[function])
-            canvas.plot_dataset((x, None, y, y_err), style="binned band", colour=colours[function], alpha=0.2)
-            canvas.plot_dataset((x, y), style="line join centres", label=function.replace("_", " ").title(), colour=colours[function])
+            canvas.plot_dataset(x, None, y, y_err, style="binned band", colour=colours[function], alpha=0.2)
+            canvas.plot_dataset(x, y, style="line join centres", label=function.replace("_", " ").title(), colour=colours[function])
             y_restricted = [_y for _y in y if -1.5 < float(_y) < 1.0]
             y_min, y_max = min(y_min, min(y_restricted)), max(y_max, max(y_restricted))
-        canvas.plot_dataset(([x_min, x_max], [0.2, 0.2]), style="line join centres", colour="red", linestyle="dashed")
-        canvas.plot_dataset(([x_min, x_max], [-0.2, -0.2]), style="line join centres", colour="red", linestyle="dashed")
+        canvas.plot_dataset([x_min, x_max], [0.2, 0.2], style="line join centres", colour="red", linestyle="dashed")
+        canvas.plot_dataset([x_min, x_max], [-0.2, -0.2], style="line join centres", colour="red", linestyle="dashed")
         canvas.set_axis_label("x", "$m_{\gamma\gamma jj}$")
         canvas.set_axis_label("y", "$S / \Delta S$")
         canvas.set_axis_range("x", (x_min, x_max))
@@ -112,7 +124,7 @@ for mass_category in ["high", "low"]:
         canvas.add_text(0.05, 0.85, "{}-tag {} mass".format(tag_category, mass_category), anchor_to="upper left")
         canvas.internal_header_fraction = 0.3
         canvas.add_legend(0.97, 0.85, fontsize="medium", anchor_to="upper right")
-        canvas.save_to_file(os.path.join(base_path, "plots", "Z_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
+        canvas.save_to_file(os.path.join(base_path, "plots", "spurious_signal", "Z_spurious_{}Mass_{}tag".format(mass_category, tag_category)))
 
         if not os.path.exists("tex"):
             os.makedirs("tex")

@@ -25,17 +25,18 @@ namespace SpuriousSignal {
   /**
    * SignalModel constructor
    */
-  SignalModel::SignalModel(const std::string& mass_category, const std::string& tag_category)
+  SignalModel::SignalModel(const std::string& mass_category, const std::string& tag_category, const std::vector<std::string>& model_names)
     : m_mass_category(mass_category)
     , m_tag_category(tag_category)
     , m_wk(0)
     , m_data(0)
-    , m_models({"EGE", "CBGA"})
+    , m_models(model_names)
     , m_model_parameters({{"CBGA", {"CBGA_alpha_CB", "CBGA_f_CB", "CBGA_mu_CB", "CBGA_mu_GA", "CBGA_n_CB", "CBGA_sigma_CB", "CBGA_sigma_GA"}},
                           {"EGE",  {"EGE_mu", "EGE_sigma_k", "EGE_kL", "EGE_kH"}}})
     , m_model_metaparameters({{"CBGA", {"CBGA_alpha_CB_p0", "CBGA_alpha_CB_p1", "CBGA_f_CB_p0", "CBGA_f_CB_p1", "CBGA_mu_CB_p0", "CBGA_mu_CB_p1", "CBGA_mu_GA_p0", "CBGA_mu_GA_p1", "CBGA_n_CB", "CBGA_sigma_CB_p0", "CBGA_sigma_CB_p1", "CBGA_sigma_CB_p2", "CBGA_sigma_GA_p0", "CBGA_sigma_GA_p1", "CBGA_sigma_GA_p2"}},
-                              {"EGE",  {"EGE_mu_p0", "EGE_mu_p1", "EGE_sigma_p0", "EGE_sigma_p1", "EGE_kL_p0", "EGE_kL_p1", "EGE_kL_p2", "EGE_kH_p0", "EGE_kH_p1", "EGE_kH_p2"}}})
+                              {"EGE",  {"EGE_mu_p0", "EGE_mu_p1", "EGE_sigma_p0", "EGE_sigma_p1", "EGE_sigma_p2", "EGE_kL_p0", "EGE_kL_p1", "EGE_kL_p2", "EGE_kH_p0", "EGE_kH_p1", "EGE_kH_p2"}}})
   {
+    MSG_INFO("Configuring signal model fits for " << m_models.size() << " models.");
     m_wk = new RooWorkspace(("signal_model_" + mass_category + "Mass_" + tag_category + "tag").c_str());
     // Set up category to distinguish samples
     RooCategory mass_points("mass_points", "mass_points");
@@ -48,25 +49,27 @@ namespace SpuriousSignal {
     if (std::find(m_models.begin(), m_models.end(), "EGE") != m_models.end()) {
       m_wk->factory(("EGE_mu_p0[" + std::to_string(get_initial_value("EGE_mu_p0")) + ", -10, 10]").c_str());
       m_wk->factory(("EGE_mu_p1[" + std::to_string(get_initial_value("EGE_mu_p1")) + ", 0.985, 1.015]").c_str());
-      m_wk->factory(("EGE_sigma_p0[" + std::to_string(get_initial_value("EGE_sigma_p0")) + ", -20, 20]").c_str());
-      m_wk->factory(("EGE_sigma_p1[" + std::to_string(get_initial_value("EGE_sigma_p1")) + ", -0.1, 0.1]").c_str());
-      m_wk->factory(("EGE_kL_p0[" + std::to_string(get_initial_value("EGE_kL_p0")) + ", -100, 300]").c_str());
-      m_wk->factory(("EGE_kL_p1[" + std::to_string(get_initial_value("EGE_kL_p1")) + ", -1, 1]").c_str());
-      m_wk->factory(("EGE_kL_p2[" + std::to_string(get_initial_value("EGE_kL_p2")) + ", -20000, 20000]").c_str());
-      m_wk->factory(("EGE_kH_p0[" + std::to_string(get_initial_value("EGE_kH_p0")) + ", -5, 10]").c_str());
-      m_wk->factory(("EGE_kH_p1[" + std::to_string(get_initial_value("EGE_kH_p1")) + ", -0.1, 0.1]").c_str());
-      m_wk->factory(("EGE_kH_p2[" + std::to_string(get_initial_value("EGE_kH_p2")) + ", -0.001, 0.001]").c_str());
+      m_wk->factory(("EGE_sigma_p0[" + std::to_string(get_initial_value("EGE_sigma_p0")) + ", -20, 20]").c_str());//-20, 20]").c_str());
+      m_wk->factory(("EGE_sigma_p1[" + std::to_string(get_initial_value("EGE_sigma_p1")) + ", -5, 5]").c_str());//-0.1, 0.1]").c_str());
+      m_wk->factory(("EGE_sigma_p2[" + std::to_string(get_initial_value("EGE_sigma_p2")) + ", -5, 5]").c_str());//1.0, 8.0]").c_str());
+      m_wk->factory(("EGE_kL_p0[" + std::to_string(get_initial_value("EGE_kL_p0")) + ", -100, 100]").c_str());//-100, 300]").c_str());
+      m_wk->factory(("EGE_kL_p1[" + std::to_string(get_initial_value("EGE_kL_p1")) + ", -100, 100]").c_str());//-1, 1]").c_str());
+      m_wk->factory(("EGE_kL_p2[" + std::to_string(get_initial_value("EGE_kL_p2")) + ", -100, 100]").c_str());//-20000, 20000]").c_str());
+      m_wk->factory(("EGE_kH_p0[" + std::to_string(get_initial_value("EGE_kH_p0")) + ", -10, 10]").c_str());//-5, 10]").c_str());
+      m_wk->factory(("EGE_kH_p1[" + std::to_string(get_initial_value("EGE_kH_p1")) + ", -10, 10]").c_str());//-0.1, 0.1]").c_str());
+      m_wk->factory(("EGE_kH_p2[" + std::to_string(get_initial_value("EGE_kH_p2")) + ", -10, 10]").c_str());//-0.001, 0.001]").c_str());
     }
+
     // Simultaneous Crystal Ball + Gaussian
     if (std::find(m_models.begin(), m_models.end(), "CBGA") != m_models.end()) {
       m_wk->factory(("CBGA_alpha_CB_p0[" + std::to_string(get_initial_value("CBGA_alpha_CB_p0")) + ", 0, 10]").c_str());
       m_wk->factory(("CBGA_alpha_CB_p1[" + std::to_string(get_initial_value("CBGA_alpha_CB_p1")) + ", -0.1, 0.2]").c_str());
-      m_wk->factory(("CBGA_f_CB_p0[" + std::to_string(get_initial_value("CBGA_f_CB_p0")) + ", 0.4, 1.8]").c_str());
+      m_wk->factory(("CBGA_f_CB_p0[" + std::to_string(get_initial_value("CBGA_f_CB_p0")) + ", 0.3, 1.8]").c_str());
       m_wk->factory(("CBGA_f_CB_p1[" + std::to_string(get_initial_value("CBGA_f_CB_p1")) + ", -0.1, 0.1]").c_str());
       m_wk->factory(("CBGA_mu_CB_p0[" + std::to_string(get_initial_value("CBGA_mu_CB_p0")) + ", 0, 30]").c_str());
       m_wk->factory(("CBGA_mu_CB_p1[" + std::to_string(get_initial_value("CBGA_mu_CB_p1")) + ", 0.95, 1.05]").c_str());
       m_wk->factory(("CBGA_mu_GA_p0[" + std::to_string(get_initial_value("CBGA_mu_GA_p0")) + ", 5, 40]").c_str());
-      m_wk->factory(("CBGA_mu_GA_p1[" + std::to_string(get_initial_value("CBGA_mu_GA_p1")) + ", 0.95, 1.05]").c_str());
+      m_wk->factory(("CBGA_mu_GA_p1[" + std::to_string(get_initial_value("CBGA_mu_GA_p1")) + ", 0.9, 1.1]").c_str());
       m_wk->factory(("CBGA_n_CB[" + std::to_string(get_initial_value("CBGA_n_CB")) + ", 5, 200]").c_str());
       m_wk->factory(("CBGA_sigma_CB_p0[" + std::to_string(get_initial_value("CBGA_sigma_CB_p0")) + ", -70, 0]").c_str());
       m_wk->factory(("CBGA_sigma_CB_p1[" + std::to_string(get_initial_value("CBGA_sigma_CB_p1")) + ", 0, 1.0]").c_str());
@@ -81,28 +84,33 @@ namespace SpuriousSignal {
   {
     m_wk->import(mass);
     // Individual ExpGausExp (and import the code into the workspace)
-    m_wk->factory("individual_EGE_mu[260, 0, 2000]");
-    m_wk->factory("individual_EGE_sigma_k[0.01, 0.01, 0.03]");
-    m_wk->factory("prod::individual_EGE_sigma(individual_EGE_sigma_k, individual_EGE_mu)");
-    m_wk->factory("individual_EGE_kL[2, 0.0, 20]");
-    m_wk->factory("individual_EGE_kH[2, 0.0, 20]");
-    m_wk->factory("ExpGausExpPDF::individual_EGE(mass, individual_EGE_mu, individual_EGE_sigma, individual_EGE_kL, individual_EGE_kH)");
-    m_wk->addClassDeclImportDir("include/");
-    m_wk->importClassCode("ExpGausExpPDF*");
+    if (std::find(m_models.begin(), m_models.end(), "EGE") != m_models.end()) {
+      m_wk->factory("individual_EGE_mu[260, 0, 2000]");
+      m_wk->factory("individual_EGE_sigma_k[0.01, 0.01, 0.03]");
+      m_wk->factory("prod::individual_EGE_sigma(individual_EGE_sigma_k, individual_EGE_mu)");
+      m_wk->factory("individual_EGE_kL[2, 0.0, 20]");
+      m_wk->factory("individual_EGE_kH[2, 0.0, 20]");
+      m_wk->factory("ExpGausExpPDF::individual_EGE(mass, individual_EGE_mu, individual_EGE_sigma, individual_EGE_kL, individual_EGE_kH)");
+      m_wk->addClassDeclImportDir("include/");
+      m_wk->importClassCode("ExpGausExpPDF*");
+      // Build a simultaneous ExpGausExp
+      m_wk->factory("Simultaneous::simultaneous_EGE(mass_points)");
+    }
     // Individual Crystal Ball + Gaussian
-    m_wk->factory("individual_CBGA_alpha_CB[0.1, 0.0, 20.0]");
-    m_wk->factory("individual_CBGA_f_CB[0.15, 0.0, 1.0]");
-    m_wk->factory("individual_CBGA_mu_CB[260, 0, 2000]");
-    m_wk->factory("individual_CBGA_mu_GA[260, 0, 2000]");
-    m_wk->factory("individual_CBGA_n_CB[10, 0, 200]");
-    m_wk->factory("individual_CBGA_sigma_CB[4, 0.0, 40]");
-    m_wk->factory("individual_CBGA_sigma_GA[4, 0.0, 40]");
-    m_wk->factory("CBShape::individual_CBGA_CB(mass, individual_CBGA_mu_CB, individual_CBGA_sigma_CB, individual_CBGA_alpha_CB, individual_CBGA_n_CB)");
-    m_wk->factory("Gaussian:individual_CBGA_GA(mass,individual_CBGA_mu_GA, individual_CBGA_sigma_GA)");
-    m_wk->factory("SUM::individual_CBGA(individual_CBGA_f_CB * individual_CBGA_CB, individual_CBGA_GA)");
-    // Build a simultaneous ExpGausExp and CB+GA
-    m_wk->factory("Simultaneous::simultaneous_EGE(mass_points)");
-    m_wk->factory("Simultaneous::simultaneous_CBGA(mass_points)");
+    if (std::find(m_models.begin(), m_models.end(), "CBGA") != m_models.end()) {
+      m_wk->factory("individual_CBGA_alpha_CB[0.1, 0.0, 20.0]");
+      m_wk->factory("individual_CBGA_f_CB[0.15, 0.0, 1.0]");
+      m_wk->factory("individual_CBGA_mu_CB[260, 0, 2000]");
+      m_wk->factory("individual_CBGA_mu_GA[260, 0, 2000]");
+      m_wk->factory("individual_CBGA_n_CB[10, 0, 200]");
+      m_wk->factory("individual_CBGA_sigma_CB[4, 0.0, 40]");
+      m_wk->factory("individual_CBGA_sigma_GA[4, 0.0, 40]");
+      m_wk->factory("CBShape::individual_CBGA_CB(mass, individual_CBGA_mu_CB, individual_CBGA_sigma_CB, individual_CBGA_alpha_CB, individual_CBGA_n_CB)");
+      m_wk->factory("Gaussian:individual_CBGA_GA(mass,individual_CBGA_mu_GA, individual_CBGA_sigma_GA)");
+      m_wk->factory("SUM::individual_CBGA(individual_CBGA_f_CB * individual_CBGA_CB, individual_CBGA_GA)");
+      // Build a simultaneous Crystal Ball + Gaussian
+      m_wk->factory("Simultaneous::simultaneous_CBGA(mass_points)");
+    }
     for (auto resonance_mass : PlotStyle::resonance_masses(m_mass_category) ) {
       add_mass_point(resonance_mass);
     }
@@ -112,25 +120,25 @@ namespace SpuriousSignal {
     std::string mX(std::to_string(resonance_mass));
     // Add ExpGausExp
     if (std::find(m_models.begin(), m_models.end(), "EGE") != m_models.end()) {
-      m_wk->factory(("expr::EGE_mu_Xhh_m" + mX + "('EGE_mu_p0 + EGE_mu_p1 * " + mX + "', EGE_mu_p0, EGE_mu_p1)").c_str());
-      m_wk->factory(("expr::EGE_sigma_Xhh_m" + mX + "('TMath::Min(TMath::Max(EGE_sigma_p0 + EGE_sigma_p1 * " + mX + ", " + std::to_string(m_mass_category == "low" ? 3 : 4) + "), " + std::to_string(m_mass_category == "low" ? 12 : 20) + ")', EGE_sigma_p0, EGE_sigma_p1)").c_str());
-      m_wk->factory(("expr::EGE_kL_Xhh_m" + mX + "('TMath::Min(TMath::Max(EGE_kL_p0 + EGE_kL_p1 * " + mX + " + EGE_kL_p2 / " + mX + ", 0.2), 4.0)', EGE_kL_p0, EGE_kL_p1, EGE_kL_p2)").c_str());
-      m_wk->factory(("expr::EGE_kH_Xhh_m" + mX + "('TMath::Min(TMath::Max(EGE_kH_p0 + EGE_kH_p1 * " + mX + " + EGE_kH_p2 * " + mX + " * " + mX + ", 0.2), 4.0)', EGE_kH_p0, EGE_kH_p1, EGE_kH_p2)").c_str());
-      m_wk->factory(("ExpGausExpPDF::EGE_Xhh_m" + mX + "(mass, EGE_mu_Xhh_m" + mX +", EGE_sigma_Xhh_m" + mX + ", EGE_kL_Xhh_m" + mX + ", EGE_kH_Xhh_m" + mX + ")").c_str());
-      dynamic_cast<RooSimultaneous*>(m_wk->pdf("simultaneous_EGE"))->addPdf(*m_wk->pdf(("EGE_Xhh_m" + mX).c_str()), mX.c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_EGE_mu('EGE_mu_p0 + EGE_mu_p1 * " + mX + "', EGE_mu_p0, EGE_mu_p1)").c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_EGE_sigma('TMath::Exp(EGE_sigma_p0 + EGE_sigma_p1 * " + mX + " / 100.0 + EGE_sigma_p2 * " + mX + " * " + mX + " / 10000.0)', EGE_sigma_p0, EGE_sigma_p1, EGE_sigma_p2)").c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_EGE_kL('EGE_kL_p0 + EGE_kL_p1 / ((" + mX + " / 100.0) - 2.5) + EGE_kL_p2 / (((" + mX + " / 100.0) - 2.5) * ((" + mX + " / 100.0) - 2.5))', EGE_kL_p0, EGE_kL_p1, EGE_kL_p2)").c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_EGE_kH('TMath::Exp(EGE_kH_p0 + EGE_kH_p1 * " + mX + " / 100.0 + EGE_kH_p2 * " + mX + " * " + mX + " / 10000.0)', EGE_kH_p0, EGE_kH_p1, EGE_kH_p2)").c_str());
+      m_wk->factory(("ExpGausExpPDF::Xhh_m" + mX + "_EGE(mass, Xhh_m" + mX + "_EGE_mu, Xhh_m" + mX + "_EGE_sigma, Xhh_m" + mX + "_EGE_kL, Xhh_m" + mX + "_EGE_kH)").c_str());
+      dynamic_cast<RooSimultaneous*>(m_wk->pdf("simultaneous_EGE"))->addPdf(*m_wk->pdf(("Xhh_m" + mX + "_EGE").c_str()), mX.c_str());
     }
     // Add Crystal Ball + Gaussian
     if (std::find(m_models.begin(), m_models.end(), "CBGA") != m_models.end()) {
-      m_wk->factory(("expr::CBGA_alpha_CB_Xhh_m" + mX + "('CBGA_alpha_CB_p0 + CBGA_alpha_CB_p1 * " + mX + "', CBGA_alpha_CB_p0, CBGA_alpha_CB_p1)").c_str());
-      m_wk->factory(("expr::CBGA_f_CB_Xhh_m" + mX + "('CBGA_f_CB_p0 + CBGA_f_CB_p1 * " + mX + "', CBGA_f_CB_p0, CBGA_f_CB_p1)").c_str());
-      m_wk->factory(("expr::CBGA_mu_CB_Xhh_m" + mX + "('CBGA_mu_CB_p0 + CBGA_mu_CB_p1 * " + mX + "', CBGA_mu_CB_p0, CBGA_mu_CB_p1)").c_str());
-      m_wk->factory(("expr::CBGA_mu_GA_Xhh_m" + mX + "('CBGA_mu_GA_p0 + CBGA_mu_GA_p1 * " + mX + "', CBGA_mu_GA_p0, CBGA_mu_GA_p1)").c_str());
-      m_wk->factory(("expr::CBGA_sigma_CB_Xhh_m" + mX + "('CBGA_sigma_CB_p0 + CBGA_sigma_CB_p1 * " + mX + " + CBGA_sigma_CB_p2 * " + mX + " * " + mX + "', CBGA_sigma_CB_p0, CBGA_sigma_CB_p1, CBGA_sigma_CB_p2)").c_str());
-      m_wk->factory(("expr::CBGA_sigma_GA_Xhh_m" + mX + "('CBGA_sigma_GA_p0 + CBGA_sigma_GA_p1 * " + mX + " + CBGA_sigma_GA_p2 * " + mX + " * " + mX + "', CBGA_sigma_GA_p0, CBGA_sigma_GA_p1, CBGA_sigma_GA_p2)").c_str());
-      m_wk->factory(("CBShape::CBGA_CB_Xhh_m" + mX + "(mass, CBGA_mu_CB_Xhh_m" + mX + ", CBGA_sigma_CB_Xhh_m" + mX + ", CBGA_alpha_CB_Xhh_m" + mX + ", CBGA_n_CB)").c_str());
-      m_wk->factory(("Gaussian::CBGA_GA_Xhh_m" + mX + "(mass, CBGA_mu_GA_Xhh_m" + mX + ", CBGA_sigma_GA_Xhh_m" + mX + ")").c_str());
-      m_wk->factory(("SUM::CBGA_Xhh_m" + mX + "(CBGA_f_CB_Xhh_m" + mX + " * CBGA_CB_Xhh_m" + mX + ", CBGA_GA_Xhh_m" + mX + ")").c_str());
-      dynamic_cast<RooSimultaneous*>(m_wk->pdf("simultaneous_CBGA"))->addPdf(*m_wk->pdf(("CBGA_Xhh_m" + mX).c_str()), mX.c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_CBGA_alpha_CB('CBGA_alpha_CB_p0 + CBGA_alpha_CB_p1 * " + mX + "', CBGA_alpha_CB_p0, CBGA_alpha_CB_p1)").c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_CBGA_f_CB('CBGA_f_CB_p0 + CBGA_f_CB_p1 * " + mX + "', CBGA_f_CB_p0, CBGA_f_CB_p1)").c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_CBGA_mu_CB('CBGA_mu_CB_p0 + CBGA_mu_CB_p1 * " + mX + "', CBGA_mu_CB_p0, CBGA_mu_CB_p1)").c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_CBGA_mu_GA('CBGA_mu_GA_p0 + CBGA_mu_GA_p1 * " + mX + "', CBGA_mu_GA_p0, CBGA_mu_GA_p1)").c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_CBGA_sigma_CB('CBGA_sigma_CB_p0 + CBGA_sigma_CB_p1 * " + mX + " + CBGA_sigma_CB_p2 * " + mX + " * " + mX + "', CBGA_sigma_CB_p0, CBGA_sigma_CB_p1, CBGA_sigma_CB_p2)").c_str());
+      m_wk->factory(("expr::Xhh_m" + mX + "_CBGA_sigma_GA('CBGA_sigma_GA_p0 + CBGA_sigma_GA_p1 * " + mX + " + CBGA_sigma_GA_p2 * " + mX + " * " + mX + "', CBGA_sigma_GA_p0, CBGA_sigma_GA_p1, CBGA_sigma_GA_p2)").c_str());
+      m_wk->factory(("CBShape::Xhh_m" + mX + "_CBGA_CB(mass, Xhh_m" + mX + "_CBGA_mu_CB, Xhh_m" + mX + "_CBGA_sigma_CB, Xhh_m" + mX + "_CBGA_alpha_CB, CBGA_n_CB)").c_str());
+      m_wk->factory(("Gaussian::Xhh_m" + mX + "_CBGA_GA(mass, CBGA_mu_GA_Xhh_m" + mX + ", CBGA_sigma_GA_Xhh_m" + mX + ")").c_str());
+      m_wk->factory(("SUM::Xhh_m" + mX + "_CBGA(Xhh_m" + mX + "_CBGA_f_CB * Xhh_m" + mX + "_CBGA_CB, Xhh_m" + mX + "_CBGA_GA)").c_str());
+      dynamic_cast<RooSimultaneous*>(m_wk->pdf("simultaneous_CBGA"))->addPdf(*m_wk->pdf(("Xhh_m" + mX + "_CBGA").c_str()), mX.c_str());
     }
   }
 
@@ -154,17 +162,22 @@ namespace SpuriousSignal {
 
   void SignalModel::write(const std::string& output_file_name)
   {
-    // Write EGE to output
-    for (auto metaparameter : m_model_metaparameters.at("EGE")) {
-      m_wk->var(metaparameter.c_str())->setConstant();
-    }
-    m_wk->factory("expr::EGE_mu('EGE_mu_p0 + EGE_mu_p1 * mass_resonance', EGE_mu_p0, EGE_mu_p1, mass_resonance)");
-    m_wk->factory(("expr::EGE_sigma('TMath::Min(TMath::Max(EGE_sigma_p0 + EGE_sigma_p1 * mass_resonance, " + std::to_string(m_mass_category == "low" ? 3 : 4) + "), " + std::to_string(m_mass_category == "low" ? 12 : 20) + ")', EGE_sigma_p0, EGE_sigma_p1, mass_resonance)").c_str());
-    m_wk->factory("expr::EGE_kL('TMath::Min(TMath::Max(EGE_kL_p0 + EGE_kL_p1 * mass_resonance + EGE_kL_p2 / mass_resonance, 0.2), 4.0)', EGE_kL_p0, EGE_kL_p1, EGE_kL_p2, mass_resonance)");
-    m_wk->factory("expr::EGE_kH('TMath::Min(TMath::Max(EGE_kH_p0 + EGE_kH_p1 * mass_resonance + EGE_kH_p2 * mass_resonance * mass_resonance, 0.2), 4.0)', EGE_kH_p0, EGE_kH_p1, EGE_kH_p2, mass_resonance)");
-    m_wk->factory("ExpGausExpPDF::signal_PDF(mass, EGE_mu, EGE_sigma, EGE_kL, EGE_kH)");
     MSG_INFO("Preparing to write workspace to " << output_file_name);
-    m_wk->writeToFile(output_file_name.c_str(), false);
+    for (const auto& model : m_models) {
+      // Set meta-parameters constant
+      for (auto metaparameter : m_model_metaparameters.at(model)) {
+        m_wk->var(metaparameter.c_str())->setConstant();
+      }
+      // Write EGE to output
+      if (model == "EGE") {
+        m_wk->factory("expr::EGE_mu('EGE_mu_p0 + EGE_mu_p1 * mass_resonance', EGE_mu_p0, EGE_mu_p1, mass_resonance)");
+        m_wk->factory("expr::EGE_sigma('TMath::Exp(EGE_sigma_p0 + EGE_sigma_p1 * mass_resonance / 100.0 + EGE_sigma_p2 * mass_resonance * mass_resonance / 10000.0)', EGE_sigma_p0, EGE_sigma_p1, EGE_sigma_p2, mass_resonance)");
+        m_wk->factory("expr::EGE_kL('EGE_kL_p0 + EGE_kL_p1 / ((mass_resonance / 100.0) - 2.5) + EGE_kL_p2 / (((mass_resonance / 100.0) - 2.5) * ((mass_resonance / 100.0) - 2.5))', EGE_kL_p0, EGE_kL_p1, EGE_kL_p2, mass_resonance)");
+        m_wk->factory("expr::EGE_kH('TMath::Exp(EGE_kH_p0 + EGE_kH_p1 * mass_resonance / 100.0 + EGE_kH_p2 * mass_resonance * mass_resonance / 10000.0)', EGE_kH_p0, EGE_kH_p1, EGE_kH_p2, mass_resonance)");
+        m_wk->factory("ExpGausExpPDF::signal_PDF(mass, EGE_mu, EGE_sigma, EGE_kL, EGE_kH)");
+        m_wk->writeToFile(output_file_name.c_str(), false);
+      }
+    }
   }
 
   void SignalModel::plot()
@@ -176,7 +189,7 @@ namespace SpuriousSignal {
     for (auto model : m_models) {
       // Plot all fits on one canvas
       TCanvas canvas("canvas", "canvas", 600, 600);
-      RooPlot* frame = m_wk->var("mass")->frame(RooFit::Range((m_mass_category == "low" ? 245 : 335), (m_mass_category == "low" ? 485 : 1140)));
+      RooPlot* frame = m_wk->var("mass")->frame(RooFit::Range(PlotStyle::mass_range(m_mass_category).first, PlotStyle::mass_range(m_mass_category).second));
       for (unsigned int idx = 0; idx < PlotStyle::resonance_masses(m_mass_category).size(); ++idx) {
         std::string mX(std::to_string(PlotStyle::resonance_masses(m_mass_category).at(idx)));
         m_wk->var("mass_resonance")->setVal(PlotStyle::resonance_masses(m_mass_category).at(idx));
@@ -186,7 +199,7 @@ namespace SpuriousSignal {
       }
       frame->Draw();
       frame->SetMinimum(0);
-      canvas.Print(("plots/signal_model_" + model + "_" + m_mass_category + "Mass_" + m_tag_category + "tag_overall.pdf").c_str());
+      canvas.Print(("plots/signal_model/overall/overall_signal_model_" + model + "_" + m_mass_category + "Mass_" + m_tag_category + "tag_overall.pdf").c_str());
       MSG_INFO("Created plots/signal_model_" + model + "_" << m_mass_category << "Mass_" << m_tag_category << "tag_overall.pdf");
 
       // Plot each fit individually
@@ -242,10 +255,10 @@ namespace SpuriousSignal {
           textBox.DrawLatex(0.19, 0.70, ("#chi^{2} / ndof = " + PlotStyle::to_string(individual_chiSquared, 2) + "/" + PlotStyle::to_string(ndof - individual_nFitParams, 0)).c_str());
           textBox.SetTextColor(kRed);
           textBox.DrawLatex(0.74, 0.90, ("Simultaneous " + model + " fit").c_str());
-          textBox.DrawLatex(0.74, 0.86, ("#mu_{EGE} = " + PlotStyle::to_string(m_wk->function(("EGE_mu_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-          textBox.DrawLatex(0.74, 0.82, ("#sigma_{EGE} = " + PlotStyle::to_string(m_wk->function(("EGE_sigma_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-          textBox.DrawLatex(0.74, 0.78, ("k_{L,EGE} = " + PlotStyle::to_string(m_wk->function(("EGE_kL_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-          textBox.DrawLatex(0.74, 0.74, ("k_{H,EGE} = " + PlotStyle::to_string(m_wk->function(("EGE_kH_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.86, ("#mu_{EGE} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_EGE_mu").c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.82, ("#sigma_{EGE} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_EGE_sigma").c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.78, ("k_{L,EGE} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_EGE_kL").c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.74, ("k_{H,EGE} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_EGE_kH").c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.70, ("#chi^{2} / ndof = " + PlotStyle::to_string(chiSquared, 2) + "/" + PlotStyle::to_string(ndof - nFitParams, 0)).c_str());
         } else if (model == "CBGA") {
           textBox.SetTextColor(kBlue);
@@ -260,13 +273,13 @@ namespace SpuriousSignal {
           textBox.DrawLatex(0.19, 0.58, ("#chi^{2} / ndof = " + PlotStyle::to_string(individual_chiSquared, 2) + "/" + PlotStyle::to_string(ndof - individual_nFitParams, 0)).c_str());
           textBox.SetTextColor(kRed);
           textBox.DrawLatex(0.74, 0.90, ("Simultaneous " + model + " fit").c_str());
-          textBox.DrawLatex(0.74, 0.86, ("#alpha_{CB} = " + PlotStyle::to_string(m_wk->function(("CBGA_alpha_CB_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-          textBox.DrawLatex(0.74, 0.82, ("f_{CB} = " + PlotStyle::to_string(m_wk->function(("CBGA_f_CB_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-          textBox.DrawLatex(0.74, 0.78, ("#mu_{CB} = " + PlotStyle::to_string(m_wk->function(("CBGA_mu_CB_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-          textBox.DrawLatex(0.74, 0.74, ("#mu_{GA} = " + PlotStyle::to_string(m_wk->function(("CBGA_mu_GA_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.86, ("#alpha_{CB} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_CBGA_alpha_CB").c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.82, ("f_{CB} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_CBGA_f_CB").c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.78, ("#mu_{CB} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_CBGA_mu_CB").c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.74, ("#mu_{GA} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_CBGA_mu_GA").c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.70, ("n_{CB} = " + PlotStyle::to_string(m_wk->var("CBGA_n_CB")->getVal(), 2)).c_str());
-          textBox.DrawLatex(0.74, 0.66, ("#sigma_{CB} = " + PlotStyle::to_string(m_wk->function(("CBGA_sigma_CB_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
-          textBox.DrawLatex(0.74, 0.62, ("#sigma_{GA} = " + PlotStyle::to_string(m_wk->function(("CBGA_sigma_GA_Xhh_m" + mX).c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.66, ("#sigma_{CB} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_CBGA_sigma_CB").c_str())->getVal(), 2)).c_str());
+          textBox.DrawLatex(0.74, 0.62, ("#sigma_{GA} = " + PlotStyle::to_string(m_wk->function(("Xhh_m" + mX + "_CBGA_sigma_GA").c_str())->getVal(), 2)).c_str());
           textBox.DrawLatex(0.74, 0.58, ("#chi^{2} / ndof = " + PlotStyle::to_string(chiSquared, 2) + "/" + PlotStyle::to_string(ndof - nFitParams, 0)).c_str());
         }
         TPad pad_bottom("pad_bottom", "pad_bottom", 0.0, 0.0, 1.0, 1.0);
@@ -281,8 +294,14 @@ namespace SpuriousSignal {
         frame_ratio->Draw();
         TLine l(frame_ratio->GetXaxis()->GetXmin(), 0.0, frame_ratio->GetXaxis()->GetXmax(), 0.0);
         l.SetLineColor(kRed); l.SetLineWidth(2); l.SetLineStyle(kDashed); l.Draw();
-        canvas_individual.Print(("plots/" + m_mass_category + "Mass_" + m_tag_category + "tag/signal_model_" + model + "_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + mX + ".pdf").c_str());
+        canvas_individual.Print(("plots/signal_model/" + model + "/signal_model_" + model + "_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + mX + ".pdf").c_str());
         MSG_INFO("Created plots/" << m_mass_category << "Mass_" << m_tag_category << "tag/signal_model_" << model << "_" << m_mass_category << "Mass_" << m_tag_category << "tag_mX_" << mX << ".pdf");
+        // Print individual fit parameters
+        for (auto& parameter : m_model_parameters.at(model)) {
+          RooRealVar *wk_parameter = m_wk->var(("individual_" + parameter).c_str());
+          (void)wk_parameter; // to avoid compiler warnings when running in non-debug mode
+          MSG_DEBUG(m_mass_category << " " << m_tag_category << " " << parameter << " " << resonance_mass << " " << wk_parameter->getVal() << " " << wk_parameter->getError());
+        }
       }
     }
   }
@@ -293,71 +312,77 @@ namespace SpuriousSignal {
 
   double SignalModel::get_initial_value(const std::string& name) {
     if (m_mass_category == "low" && m_tag_category == "0") {
-      if (name == "EGE_mu_p0") { return -1.47449437499; }
-      if (name == "EGE_mu_p1") { return 1.005375375; }
-      if (name == "EGE_sigma_p0") { return -14.7105371; }
-      if (name == "EGE_sigma_p1") { return 0.0693068599999; }
-      if (name == "EGE_kL_p0") { return -23.5578042939; }
-      if (name == "EGE_kL_p1") { return 0.0371280575616; }
-      if (name == "EGE_kL_p2") { return 3952.48944757; }
-      if (name == "EGE_kH_p0") { return -0.814981007462; }
-      if (name == "EGE_kH_p1") { return 0.00491339376534; }
-      if (name == "EGE_kH_p2") { return 1.54040320163e-07; }
+      if (name == "EGE_mu_p0") { return -1.33107855; }
+      if (name == "EGE_mu_p1") { return 1.004928891; }
+      if (name == "EGE_sigma_p0") { return -3.97166592; }
+      if (name == "EGE_sigma_p1") { return 2.81727456; }
+      if (name == "EGE_sigma_p2") { return -0.2979523; }
+      if (name == "EGE_kL_p0") { return 1.17591096; }
+      if (name == "EGE_kL_p1") { return -0.30864717; }
+      if (name == "EGE_kL_p2") { return 0.03796169; }
+      if (name == "EGE_kH_p0") { return -6.14867379; }
+      if (name == "EGE_kH_p1") { return 2.98087018; }
+      if (name == "EGE_kH_p2") { return -0.35195593;}
     } else if (m_mass_category == "high" && m_tag_category == "0") {
-      if (name == "EGE_mu_p0") { return 2.10913833994; }
-      if (name == "EGE_mu_p1") { return 0.996911067194; }
-      if (name == "EGE_sigma_p0") { return -13.9163441936; }
-      if (name == "EGE_sigma_p1") { return 0.039597383871; }
-      if (name == "EGE_kL_p0") { return 4.9407264299; }
-      if (name == "EGE_kL_p1") { return -0.00241285149081; }
-      if (name == "EGE_kL_p2") { return -1608.13185168; }
-      if (name == "EGE_kH_p0") { return -1.37161926041; }
-      if (name == "EGE_kH_p1") { return 0.00494901864028; }
-      if (name == "EGE_kH_p2") { return -2.81315062286e-06; }
+      if (name == "EGE_mu_p0") { return 2.6927747; }
+      if (name == "EGE_mu_p1") { return 0.9953319763; }
+      if (name == "EGE_sigma_p0") { return 0.35508604; }
+      if (name == "EGE_sigma_p1") { return 0.30728317; }
+      if (name == "EGE_sigma_p2") { return -0.0111862; }
+      if (name == "EGE_kL_p0") { return 0.46598494; }
+      if (name == "EGE_kL_p1") { return -0.1558814; }
+      if (name == "EGE_kL_p2") { return 0.00359117; }
+      if (name == "EGE_kH_p0") { return -1.11877485; }
+      if (name == "EGE_kH_p1") { return 9.74486849e-04; }
+      if (name == "EGE_kH_p2") { return 1.07415847e-03; }
     } if (m_mass_category == "low" && m_tag_category == "1") {
-      if (name == "EGE_mu_p0") { return -2.45754812504; }
-      if (name == "EGE_mu_p1") { return 1.010055125; }
-      if (name == "EGE_sigma_p0") { return -9.76830174374; }
-      if (name == "EGE_sigma_p1") { return 0.05133163375; }
-      if (name == "EGE_kL_p0") { return -30.4009357541; }
-      if (name == "EGE_kL_p1") { return 0.0458943038413; }
-      if (name == "EGE_kL_p2") { return 5236.77268308; }
-      if (name == "EGE_kH_p0") { return 0.736566804598; }
-      if (name == "EGE_kH_p1") { return -0.00250744455118; }
-      if (name == "EGE_kH_p2") { return 7.4759865861e-06; }
+      if (name == "EGE_mu_p0") { return -2.37223907; }
+      if (name == "EGE_mu_p1") { return 1.0096604181; }
+      if (name == "EGE_sigma_p0") { return -2.60476481; }
+      if (name == "EGE_sigma_p1") { return 2.02458664; }
+      if (name == "EGE_sigma_p2") { return -0.19813873; }
+      if (name == "EGE_kL_p0") { return 1.08152049; }
+      if (name == "EGE_kL_p1") { return -0.33258371; }
+      if (name == "EGE_kL_p2") { return 0.0618694; }
+      if (name == "EGE_kH_p0") { return -1.36019444; }
+      if (name == "EGE_kH_p1") { return 0.38158853; }
+      if (name == "EGE_kH_p2") { return -0.02376858; }
     } if (m_mass_category == "high" && m_tag_category == "1") {
-      if (name == "EGE_mu_p0") { return 5.34054940692; }
-      if (name == "EGE_mu_p1") { return 0.991423952569; }
-      if (name == "EGE_sigma_p0") { return 2.50161581028; }
-      if (name == "EGE_sigma_p1") { return 0.0144543648221; }
-      if (name == "EGE_kL_p0") { return 0.568798720108; }
-      if (name == "EGE_kL_p1") { return 0.000286392707423; }
-      if (name == "EGE_kL_p2") { return 86.4115958043; }
-      if (name == "EGE_kH_p0") { return 1.35761961112; }
-      if (name == "EGE_kH_p1") { return -0.00181687865308; }
-      if (name == "EGE_kH_p2") { return 1.10214839952e-06; }
+      if (name == "EGE_mu_p0") { return 4.47617391; }
+      if (name == "EGE_mu_p1") { return 0.992433913; }
+      if (name == "EGE_sigma_p0") { return 0.78287279; }
+      if (name == "EGE_sigma_p1") { return 0.29029052; }
+      if (name == "EGE_sigma_p2") { return -0.00807065; }
+      if (name == "EGE_kL_p0") { return 0.97026121; }
+      if (name == "EGE_kL_p1") { return -0.23456268; }
+      if (name == "EGE_kL_p2") { return -0.66998253; }
+      if (name == "EGE_kH_p0") { return -1.03804543; }
+      if (name == "EGE_kH_p1") { return 0.12539734; }
+      if (name == "EGE_kH_p2") { return -0.00650364; }
     } if (m_mass_category == "low" && m_tag_category == "2") {
-      if (name == "EGE_mu_p0") { return -0.0675574997714; }
-      if (name == "EGE_mu_p1") { return 1.0008295; }
-      if (name == "EGE_sigma_p0") { return -3.6432324; }
-      if (name == "EGE_sigma_p1") { return 0.0281058400001; }
-      if (name == "EGE_kL_p0") { return -57.1941470189; }
-      if (name == "EGE_kL_p1") { return 0.0833342844111; }
-      if (name == "EGE_kL_p2") { return 10019.6733521; }
-      if (name == "EGE_kH_p0") { return 5.91007635148; }
-      if (name == "EGE_kH_p1") { return -0.0295306763403; }
-      if (name == "EGE_kH_p2") { return 4.21812194433e-05; }
+      if (name == "EGE_mu_p0") { return 0.1713232; }
+      if (name == "EGE_mu_p1") { return 1.00000153; }
+      if (name == "EGE_sigma_p0") { return -4.42029036; }
+      if (name == "EGE_sigma_p1") { return 3.16102646; }
+      if (name == "EGE_sigma_p2") { return  -0.3863813; }
+      if (name == "EGE_kL_p0") { return 8.70715388e-01; }
+      if (name == "EGE_kL_p1") { return 1.23627296e-01; }
+      if (name == "EGE_kL_p2") { return -4.94317474e-04; }
+      if (name == "EGE_kH_p0") { return -0.43097996; }
+      if (name == "EGE_kH_p1") { return 0.30241119; }
+      if (name == "EGE_kH_p2") { return -0.06352152; }
     } if (m_mass_category == "high" && m_tag_category == "2") {
-      if (name == "EGE_mu_p0") { return 3.48818577074; }
-      if (name == "EGE_mu_p1") { return 0.99304486166; }
-      if (name == "EGE_sigma_p0") { return -0.325412569162; }
-      if (name == "EGE_sigma_p1") { return 0.0170567944664; }
-      if (name == "EGE_kL_p0") { return 1.07816004197; }
-      if (name == "EGE_kL_p1") { return -6.26645623641e-05; }
-      if (name == "EGE_kL_p2") { return -7.67419139643; }
-      if (name == "EGE_kH_p0") { return 0.860939466908; }
-      if (name == "EGE_kH_p1") { return -0.000403346158662; }
-      if (name == "EGE_kH_p2") { return 2.5412126773e-07; }
+      if (name == "EGE_mu_p0") { return 3.48818577; }
+      if (name == "EGE_mu_p1") { return 0.9930448617; }
+      if (name == "EGE_sigma_p0") { return 0.8865416; }
+      if (name == "EGE_sigma_p1") { return 0.28844091; }
+      if (name == "EGE_sigma_p2") { return -0.00945846; }
+      if (name == "EGE_kL_p0") { return 1.07873558; }
+      if (name == "EGE_kL_p1") { return -0.50070711; }
+      if (name == "EGE_kL_p2") { return 0.75016217; }
+      if (name == "EGE_kH_p0") { return 0.04114206; }
+      if (name == "EGE_kH_p1") { return -0.11020904; }
+      if (name == "EGE_kH_p2") { return 0.00727963; }
     }
     // CBGA
     if (m_tag_category == "0") {

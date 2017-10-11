@@ -26,6 +26,11 @@ namespace SpuriousSignal {
     static std::string label(const std::string& fn_name);
 
     /**
+     * Pair of edges giving mass range
+     */
+    static std::pair<int, int> mass_range(const std::string& mass_category);
+
+    /**
      * List of masses in a given category
      */
     static std::vector<int> resonance_masses(const std::string& mass_category);

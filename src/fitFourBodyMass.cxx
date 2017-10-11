@@ -71,7 +71,7 @@ int main(int argc, char** argv)
 
   for (auto mass_category : mass_categories) {
     // Define mass ranges for this category
-    std::pair<int, int> mass_range = (mass_category == "low" ? std::make_pair<int, int>(245, 485) : std::make_pair<int, int>(335, 1140));
+    std::pair<int, int> mass_range = PlotStyle::mass_range(mass_category);
     std::pair<int, int> peak_range = (mass_category == "low" ? std::make_pair<int, int>(260, 280) : std::make_pair<int, int>(0, 1000));
 
     // Iterate over tag categories
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
 
       // Recreate output text file
       std::string fileSuffix(appendToFile ? "_mX" + args["mX"][0] : "");
-      std::string f_output_text("output/csv/spurious_signal_" + mass_category + "Mass_" + tag_category + "tag" + fileSuffix + ".csv");
+      std::string f_output_text("output/csv/" + std::string(appendToFile ? "mass_points/" : "") + "spurious_signal_" + mass_category + "Mass_" + tag_category + "tag" + fileSuffix + ".csv");
       std::ofstream f_text;
       f_text.open(f_output_text, (appendToFile ? std::ios::app : std::ios::trunc));
       f_text.close();
@@ -199,7 +199,6 @@ int main(int argc, char** argv)
 
         // Do S+B fits for different backgrounds
         MSG_INFO("Performing signal + background fits for " << bkg_functions.size() << " fit functions.");
-        wk->Print("all");
 
         // Construct S+B PDFs
         std::vector<RooAbsPdf*> splusb_functions;

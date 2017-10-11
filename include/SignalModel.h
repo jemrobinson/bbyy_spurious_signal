@@ -16,7 +16,7 @@ namespace SpuriousSignal {
     /**
      * SignalModel constructor
      */
-    SignalModel(const std::string& mass_category, const std::string& tag_category);
+    SignalModel(const std::string& mass_category, const std::string& tag_category, const std::vector<std::string>& model_names);
 
     /**
      * Build the simultaneous PDF for this category

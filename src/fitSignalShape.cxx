@@ -15,12 +15,21 @@
 #include "RooPlot.h"
 #include "TCanvas.h"
 
-int main(int /*argc*/, char** /*argv*/)
+int main(int argc, char** argv)
 {
   using namespace SpuriousSignal;
 
+  // Determine which signal models to use
+  std::vector<std::string> model_names;
+  std::vector<std::string> input_args(argv, argv + argc);
+  for (auto arg: input_args){
+     if (arg == "EGE") { model_names.push_back("EGE"); }
+     if (arg == "CBGA") { model_names.push_back("CBGA"); }
+  }
+  if (model_names.size() == 0) { model_names.push_back("EGE"); }
+
   // Disable RooFit and ROOT messages
-  RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR); //RooFit::FATAL
+  RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
   gErrorIgnoreLevel = kBreak;
 
   // Construct mass and tag categories
@@ -53,7 +62,7 @@ int main(int /*argc*/, char** /*argv*/)
 
       // Construct signal model
       MSG_INFO("Constructing simultaneous PDF");
-      SignalModel model(mass_category, tag_category);
+      SignalModel model(mass_category, tag_category, model_names);
       model.build_simultaneous_PDF(mass);
 
       // Construct combined dataset in terms of  (mass, mass_point)
