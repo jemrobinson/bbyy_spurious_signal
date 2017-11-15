@@ -9,7 +9,7 @@ SOURCE_DIR   := src
 SOURCES := $(shell find $(SOURCE_DIR) -name "[^.]*.cxx")
 FOUR_BODY_MASS_COMPONENTS := fitFourBodyMass ParameterSet PDFModelFitter PlotStyle SignalModel
 SIGNAL_SHAPE_COMPONENTS := fitSignalShape PlotStyle ExpGausExpPDF ExpGausExpPDFDict SignalModel
-SIGNAL_BIAS_COMPONENTS := extractSignalBias PlotStyle SignalModel
+SIGNAL_BIAS_COMPONENTS := extractSignalBias PlotStyle SignalModel ToyGenerator
 CXX   := g++ -m64 -Wall -Wextra# -Werror
 MKDIR := mkdir -p
 
@@ -26,10 +26,9 @@ clean:
 
 directories:
 	${MKDIR} ${BIN_DIR} ${INPUT_DIR} ${OBJECT_DIR} ${OUTPUT_DIR}
-	# ${MKDIR} ${PLOT_DIR}/spurious_signal
 
 $(BIN_DIR)/extractSignalBias: $(patsubst %, $(OBJECT_DIR)/%.o, $(SIGNAL_BIAS_COMPONENTS))
-	${MKDIR} ${PLOT_DIR}/signal_bias
+	${MKDIR} ${PLOT_DIR}/signal_bias/asimov_fits ${PLOT_DIR}/signal_bias/toy_fits
 	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 $(BIN_DIR)/fitFourBodyMass: $(patsubst %, $(OBJECT_DIR)/%.o, $(FOUR_BODY_MASS_COMPONENTS))

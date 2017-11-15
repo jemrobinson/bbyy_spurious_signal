@@ -199,8 +199,8 @@ namespace SpuriousSignal {
       }
       frame->Draw();
       frame->SetMinimum(0);
-      canvas.Print(("plots/signal_model/overall/overall_signal_model_" + model + "_" + m_mass_category + "Mass_" + m_tag_category + "tag_overall.pdf").c_str());
-      MSG_INFO("Created plots/signal_model_" + model + "_" << m_mass_category << "Mass_" << m_tag_category << "tag_overall.pdf");
+      canvas.Print(("plots/signal_model/overall/signal_model_" + model + "_" + m_mass_category + "Mass_" + m_tag_category + "tag_overall.pdf").c_str());
+      MSG_INFO("Created plots/signal_model/overall/signal_model_" << model << "_" << m_mass_category << "Mass_" << m_tag_category << "tag_overall.pdf");
 
       // Plot each fit individually
       for (auto resonance_mass : PlotStyle::resonance_masses(m_mass_category)) {
@@ -295,7 +295,7 @@ namespace SpuriousSignal {
         TLine l(frame_ratio->GetXaxis()->GetXmin(), 0.0, frame_ratio->GetXaxis()->GetXmax(), 0.0);
         l.SetLineColor(kRed); l.SetLineWidth(2); l.SetLineStyle(kDashed); l.Draw();
         canvas_individual.Print(("plots/signal_model/" + model + "/signal_model_" + model + "_" + m_mass_category + "Mass_" + m_tag_category + "tag_mX_" + mX + ".pdf").c_str());
-        MSG_INFO("Created plots/" << m_mass_category << "Mass_" << m_tag_category << "tag/signal_model_" << model << "_" << m_mass_category << "Mass_" << m_tag_category << "tag_mX_" << mX << ".pdf");
+        MSG_INFO("Created plots/signal_model/" << model << "/signal_model_" << model << "_" << m_mass_category << "Mass_" << m_tag_category << "tag_mX_" << mX << ".pdf");
         // Print individual fit parameters
         for (auto& parameter : m_model_parameters.at(model)) {
           RooRealVar *wk_parameter = m_wk->var(("individual_" + parameter).c_str());

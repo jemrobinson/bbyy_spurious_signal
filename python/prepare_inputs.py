@@ -6,7 +6,6 @@ import glob
 import shutil
 
 input_directory = "/afs/cern.ch/user/j/jrobinso/HGamma/PyAnalysis/text/"
-# mean_bkg_weight = {("low", 0): 0.0042164922200, ("low", 1): 0.00090105694345, ("low", 2): 0.00040002332151, ("high", 0): 0.0033953944451, ("high", 1): 0.00035164075374, ("high", 2): 0.000285774005317}
 
 # Background samples
 for mass_category in ["low", "high"]:
