@@ -5,7 +5,7 @@ import os
 import glob
 import shutil
 
-input_directory = "/afs/cern.ch/user/j/jrobinso/HGamma/PyAnalysis/text/"
+input_directory = "/afs/cern.ch/user/j/jrobinso/HGamma/PyAnalysis/text/blinded"
 
 # Background samples
 for mass_category in ["low", "high"]:

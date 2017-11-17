@@ -21,7 +21,7 @@ logging.basicConfig(format="%(asctime)s %(levelname)8s: %(message)s", datefmt="%
 logger.setLevel(logging.INFO)
 
 # Input settings
-version_directory = "20171113"
+version_directory = "20171116"
 expected_hh_limits_pb = {260: 1.15, 275: 1.0, 300: 0.9, 325: 0.8, 350: 0.7, 400: 0.55, 450: 0.5, 500: 0.38,  750: 0.18,  1000: 0.13}
 masses = [260, 275, 300, 400, 750, None]
 mass_categories = ["high", "low"]
@@ -34,7 +34,7 @@ np.random.seed(20170711)
 for idx_mass, mass in enumerate(masses, start=1):
     logger.info("Now working on mass mX = {} GeV".format(mass))
     output_dir = "bkg_only" if mass is None else "mX_{}".format(mass)
-    mass_dir = ensure_path("/afs/cern.ch/work/j/jrobinso", "public", "bbyy", version_directory, "pseudodata", output_dir)
+    mass_dir = ensure_path("/afs/cern.ch/work/j/jrobinso", "public", "bbyy", version_directory, "blinded", "pseudodata", output_dir)
     total_nBkg = dict((m, dict((t, []) for t in tag_categories)) for m in mass_categories)
     total_nSig = dict((m, dict((t, []) for t in tag_categories)) for m in mass_categories)
     for idx_signal_hypo, signal_hypo in enumerate(signal_hypos):
