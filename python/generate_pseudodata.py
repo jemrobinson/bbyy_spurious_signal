@@ -27,7 +27,7 @@ masses = [260, 275, 300, 400, 750, None]
 mass_categories = ["high", "low"]
 tag_categories = ["1", "2"]
 signal_hypos = [1, 1.5, 2]
-nPseudodataSamples = 1000
+nPseudodataSamples = 10 # 1000
 np.random.seed(20170711)
 
 # Create pseudodata

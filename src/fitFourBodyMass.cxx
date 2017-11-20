@@ -83,7 +83,9 @@ int main(int argc, char** argv)
       wk->var("mass")->setRange(mass_range.first, mass_range.second);
 
       // Get the data
+      RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
       RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_SM_bkg_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(*wk->var("mass"), weight));
+      RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
       RooDataSet data("data", "data", RooArgSet(*wk->var("mass"), weight), RooFit::Import(*ptr_raw_data), RooFit::WeightVar(weight), RooFit::Cut((std::to_string(mass_range.first) + " < mass && mass < " + std::to_string(mass_range.second)).c_str()));
       MSG_INFO("Loaded " << data.numEntries() << " events for " << tag_category << "-tag category, corresponding to " << data.sumEntries() << " data events");
 

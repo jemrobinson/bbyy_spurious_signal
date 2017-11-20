@@ -54,7 +54,9 @@ int main(int argc, char** argv)
       std::map<std::string, RooDataSet*> dataset_map;
       for (auto resonance_mass : PlotStyle::resonance_masses(mass_category)) {
         std::string mX(std::to_string(resonance_mass));
+        RooMsgService::instance().setGlobalKillBelow(RooFit::FATAL);
         RooDataSet* ptr_raw_data = RooDataSet::read(("input/m_yyjj_Xhh_m" + mX + "_" + mass_category + "Mass_" + tag_category + "tag_tightIsolated.csv").c_str(), RooArgList(mass, weight));
+        RooMsgService::instance().setGlobalKillBelow(RooFit::ERROR);
         RooDataSet* _data = new RooDataSet("data", "data", RooArgSet(mass, weight), RooFit::Import(*ptr_raw_data), RooFit::WeightVar(weight), RooFit::Cut(("0.9 * " + mX + " < mass && mass < 1.1 * " + mX).c_str()));
         MSG_INFO("Loaded " << _data->numEntries() << " mX = " << resonance_mass << " events for " << mass_category << " mass, " << tag_category << "-tag category, corresponding to " << _data->sumEntries() << " data events");
         dataset_map[mX] = _data;
