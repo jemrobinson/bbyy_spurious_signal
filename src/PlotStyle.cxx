@@ -73,25 +73,29 @@ namespace SpuriousSignal {
     }
   }
 
-  std::vector<int> PlotStyle::colours()
+  std::vector<int> PlotStyle::colours(const int& nColours)
   {
-    // Six qualitative colours
-    // return std::vector<int>({TColor::GetColor("#1b9e77"), TColor::GetColor("#d95f02"), TColor::GetColor("#7570b3"), TColor::GetColor("#e7298a"), TColor::GetColor("#66a61e"), TColor::GetColor("#e6ab02")});
-    // Ten qualitative colours
-    return std::vector<int>({TColor::GetColor("#C00026"), TColor::GetColor("#A00026"), TColor::GetColor("#800026"), TColor::GetColor("#bd0026"), TColor::GetColor("#e31a1c"), TColor::GetColor("#fc4e2a"), TColor::GetColor("#fd8d3c"), TColor::GetColor("#feb24c"), TColor::GetColor("#fed976"), TColor::GetColor("#ffeda0")});
+    if (nColours == 6) {
+      // Six qualitative colours
+      return std::vector<int>({TColor::GetColor("#1b9e77"), TColor::GetColor("#d95f02"), TColor::GetColor("#7570b3"), TColor::GetColor("#e7298a"), TColor::GetColor("#66a61e"), TColor::GetColor("#e6ab02")});
+    } else if (nColours == 10) {
+      // Ten qualitative colours
+      return std::vector<int>({TColor::GetColor("#c00026"), TColor::GetColor("#a00026"), TColor::GetColor("#800026"), TColor::GetColor("#bd0026"), TColor::GetColor("#e31a1c"), TColor::GetColor("#fc4e2a"), TColor::GetColor("#fd8d3c"), TColor::GetColor("#feb24c"), TColor::GetColor("#fed976"), TColor::GetColor("#ffeda0")});
+    }
+    return std::vector<int>();
   }
 
   int PlotStyle::colour(const std::string& fn_name)
   {
     std::map<std::string, int> _map = {{"novosibirsk", TColor::GetColor("#e7298a")}, {"modified_gamma", TColor::GetColor("#1b9e77")}, {"modified_landau", TColor::GetColor("#7570b3")},
-                                       {"exppoly1", TColor::GetColor("#e7298a")}, {"exppoly2", TColor::GetColor("#1b9e77")}, {"invpoly2", TColor::GetColor("#7570b3")}, {"invpoly3", TColor::GetColor("#d95f02")}};
+                                       {"exppoly1", TColor::GetColor("#66c2a5")}, {"exppoly2", TColor::GetColor("#fc8d62")}, {"invpoly2", TColor::GetColor("#8da0cb")}, {"invpoly3", TColor::GetColor("#e78ac3")}, {"powerlaw", TColor::GetColor("#a6d854")}};
     return _map[fn_name];
   }
 
   std::string PlotStyle::label(const std::string& fn_name)
   {
     std::map<std::string, std::string> _map = {{"novosibirsk", "Novosibirsk"}, {"modified_gamma", "Modified Gamma"}, {"modified_landau", "Modified Landau"},
-                                               {"exppoly1", "Exponential O(1)"}, {"exppoly2", "Exponential O(2)"}, {"invpoly2", "Inverse polynomial O(2)"}, {"invpoly3", "Inverse polynomial O(3)"}};
+                                               {"exppoly1", "Exp. (x)"}, {"exppoly2", "Exp. (x^{2})"}, {"invpoly2", "Inv. poly. (x^{-2})"}, {"invpoly3", "Inv. poly. (x^{-3})"}, {"powerlaw", "Power-law"}};
     return _map[fn_name];
   }
 

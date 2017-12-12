@@ -41,6 +41,12 @@ std::map<std::string, std::vector<std::string> > process_args(int argc, char** a
   return output_map;
 }
 
+void recreate_file(const std::string& name) {
+  std::ofstream _file;
+  _file.open(name, std::ios::trunc);
+  _file.close();
+}
+
 
 int main(int argc, char** argv)
 {
@@ -90,7 +96,8 @@ int main(int argc, char** argv)
       MSG_INFO("Loaded " << data.numEntries() << " events for " << tag_category << "-tag category, corresponding to " << data.sumEntries() << " data events");
 
       // Number of bins
-      int nBins = (tag_category == "2" ? 15 : tag_category == "1" ? 25 : 40);
+      // int nBins = (tag_category == "2" ? 15 : tag_category == "1" ? 25 : 40);
+      int nBins = (tag_category == "2" ? 16 : tag_category == "1" ? 27 : 45);
 
       // Construct vectors of mass points: either full range or specified set
       bool appendToFile(false);
@@ -125,17 +132,20 @@ int main(int argc, char** argv)
       RooFormulaVar landau_sigma("landau_sigma", "landau_sigma0 + landau_sigma1 * mass", RooArgList(*wk->var("mass"), landau_sigma0, landau_sigma1));
       RooGenericPdf modified_landau("modified_landau", "modified_landau", "TMath::Landau(mass, landau_mean, landau_sigma)", RooArgList(*wk->var("mass"), landau_mean, landau_sigma));
       // Exponential polynominal: degree-1
-      RooRealVar exppoly1_p1("exppoly1_p1", "exppoly1_p1", -0.01, -1.0, 0.0);
-      RooGenericPdf exppoly1("exppoly1", "exppoly1", "TMath::Exp(exppoly1_p1 * mass)", RooArgList(*wk->var("mass"), exppoly1_p1));
+      RooRealVar exppoly1_p0("exppoly1_p0", "exppoly1_p0", -0.01, -1.0, 0.0);
+      RooGenericPdf exppoly1("exppoly1", "exppoly1", "TMath::Exp(exppoly1_p0 * mass)", RooArgList(*wk->var("mass"), exppoly1_p0));
       // Exponential polynominal: degree-2
-      RooRealVar exppoly2_p1("exppoly2_p1", "exppoly2_p1", -1e-5, -1.0, 0.0);
-      RooGenericPdf exppoly2("exppoly2", "exppoly2", "TMath::Exp(exppoly2_p1 * mass * mass)", RooArgList(*wk->var("mass"), exppoly2_p1));
+      RooRealVar exppoly2_p0("exppoly2_p0", "exppoly2_p0", -1e-5, -1.0, 0.0);
+      RooGenericPdf exppoly2("exppoly2", "exppoly2", "TMath::Exp(exppoly2_p0 * mass * mass)", RooArgList(*wk->var("mass"), exppoly2_p0));
       // Inverse polynomial: degree-2
-      RooRealVar invpoly2_p1("invpoly2_p1", "invpoly2_p1", 1e3, 1e2, 1e20);
-      RooGenericPdf invpoly2("invpoly2", "invpoly2", "1 + invpoly2_p1 / (mass * mass)", RooArgList(*wk->var("mass"), invpoly2_p1));
+      RooRealVar invpoly2_p0("invpoly2_p0", "invpoly2_p0", 1e3, 1e2, 1e20);
+      RooGenericPdf invpoly2("invpoly2", "invpoly2", "1 + invpoly2_p0 / (mass * mass)", RooArgList(*wk->var("mass"), invpoly2_p0));
       // Inverse polynomial: degree-3
-      RooRealVar invpoly3_p1("invpoly3_p1", "invpoly3_p1", 1e5, 1e4, 1e20);
-      RooGenericPdf invpoly3("invpoly3", "invpoly3", "1 + invpoly3_p1 / (mass * mass * mass)", RooArgList(*wk->var("mass"), invpoly3_p1));
+      RooRealVar invpoly3_p0("invpoly3_p0", "invpoly3_p0", 1e5, 1e4, 1e20);
+      RooGenericPdf invpoly3("invpoly3", "invpoly3", "1 + invpoly3_p0 / (mass * mass * mass)", RooArgList(*wk->var("mass"), invpoly3_p0));
+      // Power law
+      RooRealVar powerlaw_p0("powerlaw_p0", "powerlaw_p0", -1, -50, 50);
+      RooGenericPdf powerlaw("powerlaw", "powerlaw", "TMath::Power(mass, powerlaw_p0)", RooArgList(*wk->var("mass"), powerlaw_p0));
 
       // Setup fit functions
       std::vector<RooAbsPdf*> bkg_functions;
@@ -148,6 +158,7 @@ int main(int argc, char** argv)
         bkg_functions.push_back(&exppoly2);
         bkg_functions.push_back(&invpoly2);
         bkg_functions.push_back(&invpoly3);
+        bkg_functions.push_back(&powerlaw);
       }
 
       // Number of signal and background events
@@ -161,32 +172,34 @@ int main(int argc, char** argv)
         parameter_sets.push_back(ParameterSet(PlotStyle::label("modified_gamma"), {&gamma_alpha0, &gamma_alpha1, &gamma_theta0, &gamma_theta1, &gamma_mu, &nSig, &nBkg}));
         parameter_sets.push_back(ParameterSet(PlotStyle::label("modified_landau"), {&landau_mean, &landau_sigma0, &landau_sigma1, &nSig, &nBkg}));
       } else if (mass_category == "high") {
-        parameter_sets.push_back(ParameterSet(PlotStyle::label("exppoly1"), {&exppoly1_p1, &nSig, &nBkg}));
-        parameter_sets.push_back(ParameterSet(PlotStyle::label("exppoly2"), {&exppoly2_p1, &nSig, &nBkg}));
-        parameter_sets.push_back(ParameterSet(PlotStyle::label("invpoly2"), {&invpoly2_p1, &nSig, &nBkg}));
-        parameter_sets.push_back(ParameterSet(PlotStyle::label("invpoly3"), {&invpoly3_p1, &nSig, &nBkg}));
-      }
-
-      // Recreate output text file
-      std::string fileSuffix(appendToFile ? "_mX" + args["mX"][0] : "");
-      std::string f_output_text("output/csv/" + std::string(appendToFile ? "mass_points/" : "") + "spurious_signal_" + mass_category + "Mass_" + tag_category + "tag" + fileSuffix + ".csv");
-      std::ofstream f_text;
-      f_text.open(f_output_text, (appendToFile ? std::ios::app : std::ios::trunc));
-      f_text.close();
-
-      // Do background-only fits
-      MSG_INFO("Performing background-only fits for " << bkg_functions.size() << " fit functions.");
-      PDFModelFitter fits_bkg_only(data, bkg_functions, mass_category, tag_category, true);
-      fits_bkg_only.fit();
-      fits_bkg_only.plot(wk->var("mass")->frame(RooFit::Bins(nBins)), -1);
-      fits_bkg_only.write(f_output_text);
-
-      // Record values for each set of parameters
-      for (auto& parameter_set : parameter_sets) {
-        parameter_set.record_values();
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("exppoly1"), {&exppoly1_p0, &nSig, &nBkg}));
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("exppoly2"), {&exppoly2_p0, &nSig, &nBkg}));
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("invpoly2"), {&invpoly2_p0, &nSig, &nBkg}));
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("invpoly3"), {&invpoly3_p0, &nSig, &nBkg}));
+        parameter_sets.push_back(ParameterSet(PlotStyle::label("powerlaw"), {&powerlaw_p0, &nSig, &nBkg}));
       }
 
       if (bkgOnly) {
+        // Recreate output text file
+        std::string f_spurious_signal_output("output/csv/bkg_only/spurious_signal_" + mass_category + "Mass_" + tag_category + "tag.csv");
+        recreate_file(f_spurious_signal_output);
+
+        // Do background-only fits
+        MSG_INFO("Performing background-only fits for " << bkg_functions.size() << " fit functions.");
+        PDFModelFitter fits_bkg_only(data, bkg_functions, mass_category, tag_category, true);
+        fits_bkg_only.fit();
+        fits_bkg_only.plot(wk->var("mass")->frame(RooFit::Bins(nBins)), -1);
+        fits_bkg_only.write(f_spurious_signal_output);
+
+        // Recreate output file
+        std::string f_bkg_fit_parameters("output/csv/bkg_only/bkg_fit_parameters_" + mass_category + "Mass_" + tag_category + "tag.csv");
+        recreate_file(f_bkg_fit_parameters);
+
+        // Write parameter values to disk
+        for (auto& parameter_set : parameter_sets) {
+          parameter_set.write_to_file(f_bkg_fit_parameters);
+        }
+
         // Write background-only fits to output workspace
         RooWorkspace bkg_wk(("background_model_" + mass_category + "Mass_" + tag_category + "tag").c_str());
         for (auto bkg_function : bkg_functions) {
@@ -196,11 +209,22 @@ int main(int argc, char** argv)
         MSG_INFO("Preparing to write background workspace to output/background_model_workspace.root");
         bkg_wk.writeToFile("output/background_model_workspace.root", false);
       } else {
+        // Recreate output text file
+        std::string f_spurious_signal_output("output/csv/" + std::string(appendToFile ? "mass_points/" : "") + "spurious_signal_" + mass_category + "Mass_" + tag_category + "tag" + std::string(appendToFile ? "_mX" + args["mX"][0] : "") + ".csv");
+        if (!appendToFile) { recreate_file(f_spurious_signal_output); }
+
         // Load signal model
         RooAbsPdf* signal_model = wk->pdf("signal_PDF");
 
         // Do S+B fits for different backgrounds
         MSG_INFO("Performing signal + background fits for " << bkg_functions.size() << " fit functions.");
+
+        // Read and record values for each set of parameters
+        std::string f_input_text("output/csv/bkg_only/bkg_fit_parameters_" + mass_category + "Mass_" + tag_category + "tag.csv");
+        for (auto& parameter_set : parameter_sets) {
+          parameter_set.read_from_file(f_input_text);
+          parameter_set.record_values();
+        }
 
         // Construct S+B PDFs
         std::vector<RooAbsPdf*> splusb_functions;
@@ -220,7 +244,7 @@ int main(int argc, char** argv)
           // Fit, plot and output results
           fits_splusb.fit();
           fits_splusb.plot(wk->var("mass")->frame(RooFit::Bins(nBins)), mass_point);
-          fits_splusb.write(f_output_text);
+          fits_splusb.write(f_spurious_signal_output);
         }
       }
     }

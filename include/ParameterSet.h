@@ -17,7 +17,10 @@ namespace SpuriousSignal {
     void record_values();
     void restore_values();
 
-    friend std::ostream& operator<<(std::ostream& os, const ParameterSet& m);
+    void read_from_file(const std::string& file_name);
+    void write_to_file(const std::string& file_name);
+
+    friend std::ostream& operator<<(std::ostream& os, const ParameterSet& p);
 
   private:
     const std::string m_name;

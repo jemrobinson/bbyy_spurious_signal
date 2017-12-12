@@ -70,7 +70,10 @@ namespace SpuriousSignal {
       }
 
       // Print final fit result if requested
-      if (m_verbose) { fit_result->Print("v"); }
+      if (m_verbose) {
+        fit_result->Print("v");
+        fit_result->covarianceMatrix().Print("v");
+      }
 
       // Check number of free fit parameters
       m_nFitParams.push_back(fit_result->floatParsFinal().getSize());
@@ -111,7 +114,7 @@ namespace SpuriousSignal {
       MSG_INFO(std::setw(15) << m_fit_functions.at(idx)->getTitle() << " " << (bkg_only() ? "(bkg-only)" : "(S+B)") << ": chi2 / ndof =  " << m_chi2.back() << " / " << m_ndof.back());
       legend.AddEntry((TGraph*)frame->getObject(frame->numItems() - 1), (PlotStyle::label(bkg_name(m_fit_functions.at(idx))) + ": #chi^{2} / ndof = " + PlotStyle::to_string(m_chi2.back(), 2) + " / " + std::to_string(m_ndof.back())).c_str(), "L");
     }
-    legend.AddEntry(g_data, ("MC bkg: " + m_tag_category + "-tag, " + m_mass_category + " mass").c_str(), "P");
+    legend.AddEntry(g_data, ("Total predicted background: " + m_tag_category + "-tag, " + m_mass_category + " mass").c_str(), "LEP");
     frame->Draw();
     dynamic_cast<TH1*>(frame->GetXaxis()->GetParent())->SetMinimum(0.0);
     legend.SetBorderSize(0);

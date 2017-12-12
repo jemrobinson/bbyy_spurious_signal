@@ -32,7 +32,7 @@ $(BIN_DIR)/extractSignalBias: $(patsubst %, $(OBJECT_DIR)/%.o, $(SIGNAL_BIAS_COM
 	$(CXX) $(OPTIMIZE) -o $@ $^ $(LIBS) $(CXXFLAGS)
 
 $(BIN_DIR)/fitFourBodyMass: $(patsubst %, $(OBJECT_DIR)/%.o, $(FOUR_BODY_MASS_COMPONENTS))
-	${MKDIR} ${OUTPUT_DIR}/csv/mass_points
+	${MKDIR} ${OUTPUT_DIR}/csv/mass_points ${OUTPUT_DIR}/csv/bkg_only
 	${MKDIR} ${PLOT_DIR}/background_model
 	${MKDIR} ${PLOT_DIR}/signal_plus_background_fits/lowMass_0tag ${PLOT_DIR}/signal_plus_background_fits/highMass_0tag
 	${MKDIR} ${PLOT_DIR}/signal_plus_background_fits/lowMass_1tag ${PLOT_DIR}/signal_plus_background_fits/highMass_1tag

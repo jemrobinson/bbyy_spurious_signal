@@ -13,7 +13,7 @@ namespace SpuriousSignal {
     /**
      * Diverging colours
      */
-    static std::vector<int> colours();
+    static std::vector<int> colours(const int& nColours = 10);
 
     /**
      * Colour corresponding to a named function

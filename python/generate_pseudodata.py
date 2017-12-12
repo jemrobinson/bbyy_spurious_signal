@@ -3,6 +3,7 @@ import csv
 import logging
 import numpy as np
 import os
+import sys
 import tqdm
 
 def ensure_path(*args):
@@ -17,7 +18,7 @@ def ensure_path(*args):
 
 # Set up logging
 logger = logging.getLogger(__name__)
-logging.basicConfig(format="%(asctime)s %(levelname)8s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+logging.basicConfig(stream=sys.stdout, format="%(asctime)s %(levelname)8s: %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger.setLevel(logging.INFO)
 
 # Input settings
@@ -27,7 +28,7 @@ masses = [260, 275, 300, 400, 750, None]
 mass_categories = ["high", "low"]
 tag_categories = ["1", "2"]
 signal_hypos = [1, 1.5, 2]
-nPseudodataSamples = 10 # 1000
+nPseudodataSamples = 1000
 np.random.seed(20170711)
 
 # Create pseudodata
@@ -35,9 +36,9 @@ for idx_mass, mass in enumerate(masses, start=1):
     logger.info("Now working on mass mX = {} GeV".format(mass))
     output_dir = "bkg_only" if mass is None else "mX_{}".format(mass)
     mass_dir = ensure_path("/afs/cern.ch/work/j/jrobinso", "public", "bbyy", version_directory, "blinded", "pseudodata", output_dir)
-    total_nBkg = dict((m, dict((t, []) for t in tag_categories)) for m in mass_categories)
-    total_nSig = dict((m, dict((t, []) for t in tag_categories)) for m in mass_categories)
     for idx_signal_hypo, signal_hypo in enumerate(signal_hypos):
+        total_nBkg = dict((m, dict((t, []) for t in tag_categories)) for m in mass_categories)
+        total_nSig = dict((m, dict((t, []) for t in tag_categories)) for m in mass_categories)
         signal_hypo_dir = ensure_path(mass_dir, "signal_hypothesis_{}".format(idx_signal_hypo))
         logger.info("... signal hypothesis {}/{}".format(idx_signal_hypo + 1, len(signal_hypos)))
         for idx_sample in tqdm.trange(1, nPseudodataSamples + 1):
@@ -68,8 +69,8 @@ for idx_mass, mass in enumerate(masses, start=1):
                         logger.debug("... => {} mass {}-tag pseudodata with {} background events and {} signal events".format(mass_category, tag_category, nBkg, nSig))
                         total_nBkg[mass_category][tag_category].append(nBkg)
                         total_nSig[mass_category][tag_category].append(nSig)
-    for mass_category in mass_categories:
-        for tag_category in tag_categories:
-            nBkg = np.mean(total_nBkg[mass_category][tag_category])
-            nSig = np.mean(total_nSig[mass_category][tag_category])
-            logger.info("... overall average {} mass {}-tag pseudodata is {} background events and {} signal events".format(mass_category, tag_category, nBkg, nSig))
+        for mass_category in mass_categories:
+            for tag_category in tag_categories:
+                nBkg = np.mean(total_nBkg[mass_category][tag_category])
+                nSig = np.mean(total_nSig[mass_category][tag_category])
+                logger.info("... overall average {} mass {}-tag pseudodata is {} background events and {} signal events".format(mass_category, tag_category, nBkg, nSig))
