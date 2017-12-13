@@ -27,25 +27,29 @@ for mass_category in ["low", "high"]:
                         f_output.write("\t".join([_mass, "{0:.20f}".format(_weight)]) + "\n")
                         if _weight > 0.0:
                             f_output_positive_weights.write("\t".join([_mass, "{0:.20f}".format(_weight * _scale_factor)]) + "\n")
-                    print ".... {} had {} events, equivalent to {:.2f} in data ({:.2f} if negative weights are ignored): scale factor of {:.2f} was applied".format(bkg, nBkg, sum_weights, sum_positive_weights, _scale_factor)
+                    print ".... {} had {} events, equivalent to {:.3f} in data ({:.3f} if negative weights are ignored): scale factor of {:.3f} was applied".format(bkg, nBkg, sum_weights, sum_positive_weights, _scale_factor)
                     nTotal += nBkg
                     sumWTotal += sum_weights
-        print "=> Summary: {} events, equivalent to {} in data".format(nTotal, sumWTotal)
+        print "=> SM bkg summary: {} events, equivalent to {} in data".format(nTotal, sumWTotal)
 
-# BSM Higgs
-for csv_file in glob.glob(os.path.join(input_directory, "m_yyjj_Xhh_m*.csv")):
-    with open(csv_file, "rb") as f_input:
-        _masses, _weights = [], []
-        for row in csv.reader(f_input, delimiter="\t"):
-            _masses.append(row[0])
-            _weights.append(float(row[1]))
-    sum_weights = sum(_weights)
-    sum_positive_weights = sum([_w for _w in _weights if _w > 0.])
-    _scale_factor = sum_weights / sum_positive_weights if sum_weights > 0.0 else 0.0
-    # Write outputs
-    with open(os.path.join("input", os.path.basename(csv_file)), "wb") as f_output:
-        with open(os.path.join("input", os.path.basename(csv_file)).replace(".csv", "_positive_weights.csv"), "wb") as f_output_positive_weights:
-            for _mass, _weight in zip(_masses, _weights):
-                f_output.write("\t".join([_mass, "{0:.20f}".format(_weight)]) + "\n")
-                if _weight > 0.0:
-                    f_output_positive_weights.write("\t".join([_mass, "{0:.20f}".format(_weight * _scale_factor)]) + "\n")
+        # BSM Higgs
+        print "... and BSM Higgs"
+        for csv_file in sorted(glob.glob(os.path.join(input_directory, "m_yyjj_Xhh_m*{}Mass*{}tag_tightIsolated.csv".format(mass_category, tag_category)))):
+            mX = os.path.basename(csv_file).split("_")[3]
+            with open(csv_file, "rb") as f_input:
+                _masses, _weights = [], []
+                for row in csv.reader(f_input, delimiter="\t"):
+                    _masses.append(row[0])
+                    _weights.append(float(row[1]))
+            sum_weights = sum(_weights)
+            sum_positive_weights = sum([_w for _w in _weights if _w > 0.])
+            _scale_factor = sum_weights / sum_positive_weights if sum_weights > 0.0 else 0.0
+            nSig = len(_weights)
+            # Write outputs
+            with open(os.path.join("input", os.path.basename(csv_file)), "wb") as f_output:
+                with open(os.path.join("input", os.path.basename(csv_file)).replace(".csv", "_positive_weights.csv"), "wb") as f_output_positive_weights:
+                    for _mass, _weight in zip(_masses, _weights):
+                        f_output.write("\t".join([_mass, "{0:.20f}".format(_weight)]) + "\n")
+                        if _weight > 0.0:
+                            f_output_positive_weights.write("\t".join([_mass, "{0:.20f}".format(_weight * _scale_factor)]) + "\n")
+            print ".... {} had {} events, equivalent to {:.3f} in data ({:.3f} if negative weights are ignored): scale factor of {:.3f} was applied".format(mX, nSig, sum_weights, sum_positive_weights, _scale_factor)
